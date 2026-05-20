@@ -1,0 +1,29 @@
+{
+  "name": "server-pharmacist",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "MedSync Pharmacist Portal Backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^5.0.0",
+    "mongoose": "^9.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "nodemailer": "^6.9.7",
+    "node-cron": "^3.0.3",
+    "express-validator": "^7.0.1",
+    "express-rate-limit": "^7.1.5",
+    "uuid": "^9.0.1",
+    "dotenv": "^16.3.1",
+    "cors": "^2.8.5",
+    "anthropic": "^0.27.0",
+    "cloudinary": "^2.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
