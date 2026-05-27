@@ -10,11 +10,18 @@ function PatientsPage() {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [locationFilter, setLocationFilter] = useState('');
+  const [medicineFilter, setMedicineFilter] = useState('');
+  const [selectedPatients, setSelectedPatients] = useState([]);
+  
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [showEditContactModal, setShowEditContactModal] = useState(false);
+  const [showBulkEmailModal, setShowBulkEmailModal] = useState(false);
+  
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [linkForm, setLinkForm] = useState({ qrToken: '', patientEmail: '', patientPhone: '', patientAddress: '' });
   const [contactForm, setContactForm] = useState({ patientEmail: '', patientPhone: '', patientAddress: '' });
+  const [bulkEmailForm, setBulkEmailForm] = useState({ subject: '', message: '' });
 
   useEffect(() => {
     fetchPatients();
@@ -68,6 +75,23 @@ function PatientsPage() {
     }
   };
 
+  const handleSendBulkEmail = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post('/api/dashboard/patients/bulk-email', {
+        patientIds: selectedPatients,
+        subject: bulkEmailForm.subject,
+        message: bulkEmailForm.message,
+      });
+      toast.success(`Email sent to ${selectedPatients.length} patients successfully`);
+      setShowBulkEmailModal(false);
+      setBulkEmailForm({ subject: '', message: '' });
+      setSelectedPatients([]);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to send bulk email');
+    }
+  };
+
   const openEditContact = (patient) => {
     setSelectedPatient(patient);
     setContactForm({
@@ -78,11 +102,31 @@ function PatientsPage() {
     setShowEditContactModal(true);
   };
 
-  const filteredPatients = patients.filter(p =>
-    p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.patientEmail?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.patientPhone?.includes(searchQuery)
-  );
+  const filteredPatients = patients.filter(p => {
+    const matchesSearch = p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.patientEmail?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.patientPhone?.includes(searchQuery);
+
+    const matchesLocation = locationFilter === '' || p.patientAddress?.toLowerCase().includes(locationFilter.toLowerCase());
+
+    const matchesMedicine = medicineFilter === '' || p.medicines?.some(m => m.name.toLowerCase().includes(medicineFilter.toLowerCase()));
+
+    return matchesSearch && matchesLocation && matchesMedicine;
+  });
+
+  const togglePatientSelection = (patientId) => {
+    setSelectedPatients(prev => 
+      prev.includes(patientId) ? prev.filter(id => id !== patientId) : [...prev, patientId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedPatients.length === filteredPatients.length) {
+      setSelectedPatients([]);
+    } else {
+      setSelectedPatients(filteredPatients.map(p => p._id));
+    }
+  };
 
   if (loading) {
     return (
@@ -94,26 +138,72 @@ function PatientsPage() {
 
   return (
     <div>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      {/* Header with Filters */}
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
           <input
             type="text"
-            placeholder="Search patients..."
+            placeholder="Search name, email, phone..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-12 pr-4 py-3 bg-card border border-border rounded-btn focus:outline-none focus:border-mint"
           />
         </div>
+        <div className="relative flex-1 md:w-48 md:flex-none">
+          <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+          <input
+            type="text"
+            placeholder="Filter Location..."
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-card border border-border rounded-btn focus:outline-none focus:border-mint"
+          />
+        </div>
+        <div className="relative flex-1 md:w-48 md:flex-none">
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted flex items-center justify-center font-bold text-xs border border-muted rounded-full">Rx</div>
+          <input
+            type="text"
+            placeholder="Filter Medicine..."
+            value={medicineFilter}
+            onChange={(e) => setMedicineFilter(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-card border border-border rounded-btn focus:outline-none focus:border-mint"
+          />
+        </div>
         <button
           onClick={() => setShowLinkModal(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-mint text-white rounded-btn font-semibold hover:bg-mint/90 transition-colors"
+          className="flex items-center justify-center gap-2 px-6 py-3 bg-mint text-white rounded-btn font-semibold hover:bg-mint/90 transition-colors whitespace-nowrap"
         >
           <Link2 className="w-5 h-5" />
-          Link New Patient
+          Link Patient
         </button>
       </div>
+
+      {/* Bulk Actions */}
+      {filteredPatients.length > 0 && (
+        <div className="flex items-center justify-between bg-card border border-border rounded-card p-4 mb-6">
+          <div className="flex items-center gap-3">
+            <input 
+              type="checkbox" 
+              checked={selectedPatients.length === filteredPatients.length && filteredPatients.length > 0}
+              onChange={toggleSelectAll}
+              className="w-5 h-5 rounded border-border text-mint focus:ring-mint cursor-pointer"
+            />
+            <span className="text-sm font-medium text-primary">
+              {selectedPatients.length} selected
+            </span>
+          </div>
+          {selectedPatients.length > 0 && (
+            <button
+              onClick={() => setShowBulkEmailModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-mint text-white rounded-btn text-sm font-semibold hover:bg-mint/90 transition-colors"
+            >
+              <Mail className="w-4 h-4" />
+              Send Bulk Email
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Empty State */}
       {filteredPatients.length === 0 && !loading && (
@@ -121,14 +211,8 @@ function PatientsPage() {
           <div className="w-20 h-20 bg-faint rounded-full flex items-center justify-center mx-auto mb-4">
             <Link2 className="w-10 h-10 text-muted" />
           </div>
-          <h3 className="text-xl font-semibold text-primary mb-2">No patients linked yet</h3>
-          <p className="text-muted mb-6">Link your first patient using their QR token to get started.</p>
-          <button
-            onClick={() => setShowLinkModal(true)}
-            className="px-6 py-3 bg-mint text-white rounded-btn font-semibold hover:bg-mint/90"
-          >
-            Link Patient
-          </button>
+          <h3 className="text-xl font-semibold text-primary mb-2">No patients found</h3>
+          <p className="text-muted mb-6">Adjust your filters or link a new patient.</p>
         </div>
       )}
 
@@ -138,12 +222,57 @@ function PatientsPage() {
           <PatientCard
             key={patient._id}
             patient={patient}
+            isSelected={selectedPatients.includes(patient._id)}
+            onSelectToggle={() => togglePatientSelection(patient._id)}
             onUnlink={() => handleUnlinkPatient(patient._id)}
             onEditContact={() => openEditContact(patient)}
             onSendOffer={() => {/* Navigate to offers page with patient pre-selected */}}
           />
         ))}
       </div>
+
+      {/* Bulk Email Modal */}
+      <Modal isOpen={showBulkEmailModal} onClose={() => setShowBulkEmailModal(false)} title="Send Bulk Email">
+        <form onSubmit={handleSendBulkEmail} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-primary mb-2">Subject *</label>
+            <input
+              type="text"
+              value={bulkEmailForm.subject}
+              onChange={(e) => setBulkEmailForm({ ...bulkEmailForm, subject: e.target.value })}
+              placeholder="Email subject"
+              className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-primary mb-2">Message *</label>
+            <textarea
+              value={bulkEmailForm.message}
+              onChange={(e) => setBulkEmailForm({ ...bulkEmailForm, message: e.target.value })}
+              placeholder="Type your message here..."
+              className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint h-32 resize-none"
+              required
+            />
+          </div>
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={() => setShowBulkEmailModal(false)}
+              className="flex-1 py-3 bg-faint text-muted rounded-btn font-semibold hover:bg-faint/80"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 py-3 bg-mint text-white rounded-btn font-semibold hover:bg-mint/90 flex items-center justify-center gap-2"
+            >
+              <Send className="w-4 h-4" />
+              Send to {selectedPatients.length} Patients
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Link Patient Modal */}
       <Modal isOpen={showLinkModal} onClose={() => setShowLinkModal(false)} title="Link Patient">
@@ -261,7 +390,7 @@ function PatientsPage() {
   );
 }
 
-function PatientCard({ patient, onUnlink, onEditContact, onSendOffer }) {
+function PatientCard({ patient, onUnlink, onEditContact, onSendOffer, isSelected, onSelectToggle }) {
   const alertColors = {
     red: 'bg-red-light text-red',
     amber: 'bg-amber-light text-amber',
@@ -269,9 +398,15 @@ function PatientCard({ patient, onUnlink, onEditContact, onSendOffer }) {
   };
 
   return (
-    <div className="bg-card rounded-card border border-border shadow-card p-6">
+    <div className={`bg-card rounded-card border ${isSelected ? 'border-mint ring-1 ring-mint' : 'border-border'} shadow-card p-6 transition-all`}>
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
+          <input 
+            type="checkbox" 
+            checked={isSelected}
+            onChange={onSelectToggle}
+            className="w-5 h-5 rounded border-border text-mint focus:ring-mint cursor-pointer mt-1"
+          />
           <div className="w-12 h-12 bg-navy rounded-full flex items-center justify-center text-white font-semibold">
             {patient.name?.charAt(0) || 'P'}
           </div>
@@ -292,7 +427,7 @@ function PatientCard({ patient, onUnlink, onEditContact, onSendOffer }) {
       </div>
 
       {/* Contact Info */}
-      <div className="space-y-2 mb-4 text-sm">
+      <div className="space-y-2 mb-4 text-sm pl-8">
         {patient.patientEmail && (
           <div className="flex items-center gap-2 text-muted">
             <Mail className="w-4 h-4" />
@@ -313,36 +448,38 @@ function PatientCard({ patient, onUnlink, onEditContact, onSendOffer }) {
         )}
       </div>
 
-      <button
-        onClick={onEditContact}
-        className="flex items-center gap-2 text-sm text-muted hover:text-mint mb-4 transition-colors"
-      >
-        <Edit2 className="w-4 h-4" />
-        Edit Contact Info
-      </button>
-
-      {/* Medicines Grid */}
-      <div className="border-t border-border pt-4">
-        <h4 className="font-semibold text-primary mb-3 text-sm">Medicines ({patient.medicines?.length || 0})</h4>
-        <div className="grid grid-cols-2 gap-2">
-          {patient.medicines?.slice(0, 4).map((med) => (
-            <MedicineMiniCard key={med._id} medicine={med} />
-          ))}
-        </div>
-        {patient.medicines?.length > 4 && (
-          <p className="text-xs text-muted mt-2">+{patient.medicines.length - 4} more medicines</p>
-        )}
-      </div>
-
-      {/* Actions */}
-      <div className="flex gap-2 mt-4 pt-4 border-t border-border">
+      <div className="pl-8">
         <button
-          onClick={onSendOffer}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-mint text-white rounded-btn text-sm font-semibold hover:bg-mint/90 transition-colors"
+          onClick={onEditContact}
+          className="flex items-center gap-2 text-sm text-muted hover:text-mint mb-4 transition-colors"
         >
-          <Send className="w-4 h-4" />
-          Send Offer
+          <Edit2 className="w-4 h-4" />
+          Edit Contact Info
         </button>
+
+        {/* Medicines Grid */}
+        <div className="border-t border-border pt-4">
+          <h4 className="font-semibold text-primary mb-3 text-sm">Medicines ({patient.medicines?.length || 0})</h4>
+          <div className="grid grid-cols-2 gap-2">
+            {patient.medicines?.slice(0, 4).map((med) => (
+              <MedicineMiniCard key={med._id} medicine={med} />
+            ))}
+          </div>
+          {patient.medicines?.length > 4 && (
+            <p className="text-xs text-muted mt-2">+{patient.medicines.length - 4} more medicines</p>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2 mt-4 pt-4 border-t border-border">
+          <button
+            onClick={onSendOffer}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-mint text-white rounded-btn text-sm font-semibold hover:bg-mint/90 transition-colors"
+          >
+            <Send className="w-4 h-4" />
+            Send Offer
+          </button>
+        </div>
       </div>
     </div>
   );

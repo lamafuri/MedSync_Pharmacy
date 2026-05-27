@@ -222,6 +222,42 @@ router.put('/patients/:patientId/contact', [
     });
   } catch (error) {
     next(error);
+// POST /api/dashboard/patients/bulk-email
+router.post('/patients/bulk-email', [
+  body('patientIds').isArray().withMessage('patientIds must be an array'),
+  body('subject').trim().notEmpty().withMessage('Subject is required'),
+  body('message').trim().notEmpty().withMessage('Message is required'),
+], async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { patientIds, subject, message } = req.body;
+    const pharmacistId = req.pharmacist._id;
+    const pharmacyName = req.pharmacist.pharmacyName || req.pharmacist.name;
+
+    // Find links for these patients
+    const patientLinks = await PatientLink.find({
+      pharmacistId,
+      patientId: { $in: patientIds },
+    });
+
+    const emails = patientLinks
+      .map(link => link.patientEmail)
+      .filter(email => email); // Only valid emails
+
+    if (emails.length === 0) {
+      return res.status(400).json({ message: 'No valid email addresses found for selected patients' });
+    }
+
+    const { sendBulkCustomEmail } = await import('../utils/sendEmail.js');
+    await sendBulkCustomEmail(emails, subject, message, pharmacyName);
+
+    res.json({ message: `Successfully sent email to ${emails.length} patients` });
+  } catch (error) {
+    next(error);
   }
 });
 

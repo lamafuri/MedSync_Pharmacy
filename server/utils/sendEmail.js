@@ -107,3 +107,25 @@ export const sendOfferEmail = async ({ to, patientName, pharmacyName, offerTitle
     `,
   });
 };
+
+export const sendBulkCustomEmail = async (emails, subject, message, pharmacyName) => {
+  await sendMail({
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    bcc: emails, // Use BCC to hide recipients from each other
+    subject: subject,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #1a2540 0%, #0f6e56 100%); padding: 30px; border-radius: 20px 20px 0 0;">
+          <h1 style="color: white; margin: 0;">MedSync</h1>
+          <p style="color: #e1f5ee; margin: 5px 0 0;">${pharmacyName}</p>
+        </div>
+        <div style="background: #f4f7fb; padding: 30px; border-radius: 0 0 20px 20px;">
+          <div style="color: #1a2540; font-size: 16px; line-height: 1.5; white-space: pre-wrap;">${message}</div>
+          <div style="margin-top: 30px; border-top: 1px solid #e1f5ee; padding-top: 20px; color: #7c8fa6; font-size: 12px; text-align: center;">
+            <p>This message was sent from ${pharmacyName} via MedSync Pharmacist Portal.</p>
+          </div>
+        </div>
+      </div>
+    `,
+  });
+};
