@@ -241,10 +241,15 @@ function OfferComposer({ isOpen, onClose, onSuccess }) {
   const [offerType, setOfferType] = useState('discount');
   const [discount, setDiscount] = useState(10);
   const [message, setMessage] = useState('');
-  const [channels, setChannels] = useState(['email', 'in_app']);
+  const [channels, setChannels] = useState(['in_app']);
   const [expiresAt, setExpiresAt] = useState('');
   const [selectedPatientId, setSelectedPatientId] = useState('');
   const [medicineName, setMedicineName] = useState('');
+  const [patientPreferences, setPatientPreferences] = useState('');
+  const [additionalNotes, setAdditionalNotes] = useState('');
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailBody, setEmailBody] = useState('');
+  const [whatsappMessage, setWhatsappMessage] = useState('');
   const { pharmacist } = useAuthStore();
 
   useEffect(() => {
@@ -276,8 +281,8 @@ function OfferComposer({ isOpen, onClose, onSuccess }) {
         offerType,
         discountPercent: offerType === 'discount' ? discount : 0,
         title: `${offerType === 'discount' ? `${discount}% Off` : offerType} - ${medicineName || 'Special Offer'}`,
-        fullMessage: message,
-        shortMessage: message.substring(0, 100),
+        fullMessage: emailBody || message,
+        shortMessage: whatsappMessage || message.substring(0, 100),
         channels,
         expiresAt: expiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       });
@@ -290,23 +295,64 @@ function OfferComposer({ isOpen, onClose, onSuccess }) {
     }
   };
 
-  const handleGenerateAI = async () => {
+  const handleGenerateEmail = async () => {
     if (!pharmacist?.isPremium) {
       toast.error('Premium feature');
       return;
     }
+    if (!selectedPatientId) {
+      toast.error('Please select a patient first');
+      return;
+    }
     try {
       setLoading(true);
+      const selectedPatient = patients.find(p => p._id === selectedPatientId);
       const response = await axios.post('/api/offers/generate-template', {
         medicineName: medicineName || 'Medicine',
         offerType,
         discountPercent: discount,
+        patientName: selectedPatient?.name || 'Patient',
+        patientPreferences,
+        daysLeft: 7,
+        additionalNotes,
       });
       const template = response.data.template;
-      setMessage(template.fullMessage || '');
-      toast.success('AI template generated');
+      setEmailSubject(template.emailSubject || '');
+      setEmailBody(template.emailBody || '');
+      toast.success('Email content generated');
     } catch (error) {
-      toast.error('Failed to generate template');
+      toast.error('Failed to generate email content');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGenerateWhatsApp = async () => {
+    if (!pharmacist?.isPremium) {
+      toast.error('Premium feature');
+      return;
+    }
+    if (!selectedPatientId) {
+      toast.error('Please select a patient first');
+      return;
+    }
+    try {
+      setLoading(true);
+      const selectedPatient = patients.find(p => p._id === selectedPatientId);
+      const response = await axios.post('/api/offers/generate-template', {
+        medicineName: medicineName || 'Medicine',
+        offerType,
+        discountPercent: discount,
+        patientName: selectedPatient?.name || 'Patient',
+        patientPreferences,
+        daysLeft: 7,
+        additionalNotes,
+      });
+      const template = response.data.template;
+      setWhatsappMessage(template.whatsappMessage || '');
+      toast.success('WhatsApp message generated');
+    } catch (error) {
+      toast.error('Failed to generate WhatsApp message');
     } finally {
       setLoading(false);
     }
@@ -393,51 +439,137 @@ function OfferComposer({ isOpen, onClose, onSuccess }) {
         )}
 
         <div>
-          <label className="block text-sm font-medium text-primary mb-2">Message</label>
+          <label className="block text-sm font-medium text-primary mb-2">Patient Preferences / Notes</label>
           <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            rows={4}
-            maxLength={500}
-            placeholder="Write your offer message..."
+            value={patientPreferences}
+            onChange={(e) => setPatientPreferences(e.target.value)}
+            rows={2}
+            placeholder="e.g. elderly patient, budget-conscious, prefers Nepali language"
             className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint resize-none"
           />
-          <p className="text-xs text-muted mt-1">{message.length}/500</p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div>
+          <label className="block text-sm font-medium text-primary mb-2">Additional Context</label>
+          <input
+            type="text"
+            value={additionalNotes}
+            onChange={(e) => setAdditionalNotes(e.target.value)}
+            placeholder="e.g. repeat customer, diabetic patient"
+            className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+          />
+        </div>
+
+        {/* Section A - Email Message */}
+        <div className="border border-border rounded-card p-4 space-y-4">
+          <h3 className="text-sm font-semibold text-primary">Email Content</h3>
+          
+          <div>
+            <label className="block text-sm font-medium text-primary mb-2">Subject Line</label>
+            <input
+              type="text"
+              value={emailSubject}
+              onChange={(e) => setEmailSubject(e.target.value)}
+              placeholder="Email subject..."
+              className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-primary mb-2">Email Body</label>
+            <textarea
+              value={emailBody}
+              onChange={(e) => setEmailBody(e.target.value)}
+              rows={4}
+              placeholder="Email body content..."
+              className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint resize-none"
+            />
+          </div>
+
           <button
             type="button"
-            onClick={handleGenerateAI}
+            onClick={handleGenerateEmail}
             disabled={loading}
             className="flex items-center gap-2 px-4 py-2 bg-faint text-muted rounded-btn text-sm font-semibold hover:bg-faint/80 disabled:opacity-50"
           >
-            ✨ Generate with AI
+            ✨ Generate Email
             {!pharmacist?.isPremium && <span className="text-amber">● Premium</span>}
+          </button>
+        </div>
+
+        {/* Section B - WhatsApp Message */}
+        <div className="border border-border rounded-card p-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-primary">
+              WhatsApp Message
+              {pharmacist?.isPremium ? <span className="ml-2 text-amber">· Coming Soon</span> : <span className="ml-2 text-amber">👑 Premium · Coming Soon</span>}
+            </h3>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-primary mb-2">Message</label>
+            <textarea
+              value={whatsappMessage}
+              onChange={(e) => setWhatsappMessage(e.target.value)}
+              rows={2}
+              maxLength={300}
+              placeholder="WhatsApp message..."
+              className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint resize-none"
+            />
+            <p className="text-xs text-muted mt-1">{whatsappMessage.length}/300</p>
+          </div>
+
+          <button
+            type="button"
+            disabled={true}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-400 rounded-btn text-sm font-semibold cursor-not-allowed"
+            title="WhatsApp direct messaging coming soon"
+          >
+            ✨ Generate WhatsApp Message
+            <span className="bg-gray-300 text-gray-600 text-xs px-2 py-0.5 rounded-full">Coming Soon</span>
           </button>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-primary mb-2">Channels</label>
           <div className="flex gap-4">
-            {['email', 'sms', 'in_app'].map((channel) => (
-              <label key={channel} className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={channels.includes(channel)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setChannels([...channels, channel]);
-                    } else {
-                      setChannels(channels.filter(c => c !== channel));
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={channels.includes('email')}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    if (!pharmacist?.isPremium) {
+                      toast.error('Email sending requires Premium subscription');
+                      return;
                     }
-                  }}
-                  disabled={channel === 'email' && !selectedPatient?.patientEmail}
-                  className="w-4 h-4 accent-mint"
-                />
-                <span className="text-sm text-muted capitalize">{channel}</span>
-              </label>
-            ))}
+                    setChannels([...channels, 'email']);
+                  } else {
+                    setChannels(channels.filter(c => c !== 'email'));
+                  }
+                }}
+                disabled={!pharmacist?.isPremium}
+                className="w-4 h-4 accent-mint"
+              />
+              <span className="text-sm text-muted">
+                Email {!pharmacist?.isPremium && <span className="text-amber ml-1">👑 Premium only</span>}
+              </span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={channels.includes('in_app')}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setChannels([...channels, 'in_app']);
+                  } else {
+                    setChannels(channels.filter(c => c !== 'in_app'));
+                  }
+                }}
+                className="w-4 h-4 accent-mint"
+              />
+              <span className="text-sm text-muted">In-App</span>
+            </label>
           </div>
         </div>
 
@@ -463,6 +595,7 @@ function OfferComposer({ isOpen, onClose, onSuccess }) {
             type="submit"
             disabled={loading}
             className="flex-1 py-3 bg-mint text-white rounded-btn font-semibold hover:bg-mint/90 disabled:opacity-50"
+            title={!pharmacist?.isPremium && channels.includes('email') ? 'Upgrade to send emails' : ''}
           >
             {loading ? 'Sending...' : 'Send Offer'}
           </button>

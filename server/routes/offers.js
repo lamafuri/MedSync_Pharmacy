@@ -1,6 +1,5 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import Anthropic from '@anthropic-ai/sdk';
 import PatientLink from '../models/PatientLink.js';
 import Patient from '../models/shared/Patient.js';
 import Offer from '../models/Offer.js';
@@ -27,6 +26,17 @@ router.post('/', [
 
     const { patientId, medicineName, offerType, discountPercent, title, description, fullMessage, shortMessage, channels, expiresAt } = req.body;
     const pharmacistId = req.pharmacist._id;
+
+    // Premium gate for email sending
+    if (!req.pharmacist.isPremium && channels.includes('email')) {
+      return res.status(403).json({
+        message: 'Email sending requires Premium subscription.',
+        feature: 'email_send'
+      });
+    }
+
+    // Filter out whatsapp channel (not implemented yet)
+    const filteredChannels = channels.filter(c => c !== 'whatsapp');
 
     // Verify PatientLink exists
     const patientLink = await PatientLink.findOne({
@@ -55,13 +65,13 @@ router.post('/', [
       description,
       fullMessage,
       shortMessage,
-      channels,
+      channels: filteredChannels,
       expiresAt: expiresAt || null,
       status: 'draft',
     });
 
     // Send through each channel
-    for (const channel of channels) {
+    for (const channel of filteredChannels) {
       if (channel === 'email' && patientLink.patientEmail) {
         await sendOfferEmail({
           to: patientLink.patientEmail,
@@ -73,10 +83,10 @@ router.post('/', [
           expiresAt: expiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         });
       } else if (channel === 'sms') {
-        // SMS stub - console.log for now
-        console.log(`SMS sent to ${patientLink.patientPhone}: ${title} - ${shortMessage}`);
+        // SMS stub — integrate Twilio later (no sensitive logging)
+        // console.log(`SMS sent to ${patientLink.patientPhone}: ${title} - ${shortMessage}`);
       } else if (channel === 'in_app') {
-        // Create in-app notification for patient
+        // Create in-app notification for patient with new fields
         await Notification.create({
           recipientId: patientId,
           recipientModel: 'Patient',
@@ -84,6 +94,15 @@ router.post('/', [
           title,
           message: shortMessage || fullMessage,
           offerId: offer._id,
+          pharmacyName: req.pharmacist.pharmacyName,
+          pharmacyAddress: req.pharmacist.pharmacyAddress || '',
+          pharmacyPhone: req.pharmacist.phone || '',
+          offerTitle: title,
+          offerMessage: fullMessage,
+          medicineName: medicineName,
+          discountPercent: discountPercent || 0,
+          offerType: offerType,
+          expiresAt: expiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         });
       }
     }
@@ -162,6 +181,10 @@ router.post('/generate-template', [
   body('medicineName').trim().notEmpty().withMessage('Medicine name is required'),
   body('offerType').isIn(['discount', 'buy2get1', 'bundle', 'custom']).withMessage('Invalid offer type'),
   body('discountPercent').optional().isInt({ min: 0, max: 100 }).withMessage('Discount must be 0-100'),
+  body('patientName').trim().notEmpty().withMessage('Patient name is required'),
+  body('patientPreferences').optional().trim(),
+  body('daysLeft').optional().isInt({ min: 0 }),
+  body('additionalNotes').optional().trim(),
 ], async (req, res, next) => {
   try {
     const errors = validationResult(req);
@@ -169,7 +192,15 @@ router.post('/generate-template', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { medicineName, offerType, discountPercent } = req.body;
+    const { 
+      medicineName, 
+      offerType, 
+      discountPercent, 
+      patientName,
+      patientPreferences,
+      daysLeft,
+      additionalNotes
+    } = req.body;
     const pharmacyName = req.pharmacist.pharmacyName;
 
     if (!req.pharmacist.isPremium) {
@@ -179,40 +210,59 @@ router.post('/generate-template', [
       });
     }
 
-    const anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    });
-
-    const discountText = offerType === 'discount' ? `${discountPercent}% off` : offerType;
-
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 800,
-      system: 'Pharmacy marketing assistant in Nepal. Respond with valid JSON only, no markdown.',
-      messages: [
-        {
-          role: 'user',
-          content: `Generate offer for:
-Pharmacy: ${pharmacyName}
-Medicine: ${medicineName}
-Offer: ${discountText}
-Return JSON: { title, fullMessage, shortMessage, emailSubject, suggestedDiscount, urgencyLevel, expiryDays, tags }`,
+    const response = await fetch(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.GROQ_API_KEY}` 
         },
-      ],
-    });
+        body: JSON.stringify({
+          model: "deepseek-r1-distill-llama-70b",
+          max_tokens: 800,
+          temperature: 0.7,
+          messages: [
+            {
+              role: "system",
+              content: "You are a pharmacy marketing assistant in Nepal. Always respond with valid JSON only. No markdown, no explanation, no code blocks. Raw JSON only."
+            },
+            {
+              role: "user",
+              content: `Generate a personalized medicine offer message for:
+              Pharmacy: ${pharmacyName}
+              Medicine: ${medicineName}
+              Patient Name: ${patientName}
+              Patient Preferences: ${patientPreferences || 'N/A'}
+              Offer Type: ${offerType}
+              Discount: ${discountPercent}%
+              Days of stock remaining: ${daysLeft || 'N/A'}
+              Additional Notes: ${additionalNotes || 'N/A'}
+              
+              Return JSON with exactly these keys:
+              {
+                "emailSubject": "compelling subject line",
+                "emailBody": "professional full email body HTML, personalized with patient name and medicine details, 3-4 sentences",
+                "whatsappMessage": "friendly WhatsApp message under 300 chars with emoji",
+                "suggestedDiscount": number between 5 and 40,
+                "urgencyLevel": "low | medium | high"
+              }`
+            }
+          ]
+        })
+      }
+    );
 
-    const content = message.content[0].text;
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    
-    if (!jsonMatch) {
-      return res.status(500).json({ message: 'Failed to parse AI response' });
-    }
+    const data = await response.json();
+    const text = data.choices[0].message.content;
+    const parsed = JSON.parse(text.trim());
 
-    const template = JSON.parse(jsonMatch[0]);
-
-    res.json({ template });
+    res.json({ template: parsed });
   } catch (error) {
-    next(error);
+    // console.error('AI generation error:', error);
+    return res.status(500).json({ 
+      message: 'AI generation failed, please write message manually' 
+    });
   }
 });
 

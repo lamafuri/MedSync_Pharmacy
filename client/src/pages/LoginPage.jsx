@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -45,6 +45,7 @@ function LoginPage() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetStep, setResetStep] = useState('request');
   const [pendingEmail, setPendingEmail] = useState('');
+  const [otpValue, setOtpValue] = useState('');
   const [loading, setLoading] = useState(false);
 
   const loginForm = useForm({
@@ -55,11 +56,6 @@ function LoginPage() {
     resolver: zodResolver(registerSchema),
   });
 
-  const otpForm = useForm({
-    resolver: zodResolver(otpSchema),
-    defaultValues: { email: pendingEmail },
-  });
-
   const forgotPasswordForm = useForm({
     resolver: zodResolver(forgotPasswordSchema),
   });
@@ -67,6 +63,17 @@ function LoginPage() {
   const resetPasswordForm = useForm({
     resolver: zodResolver(resetPasswordSchema),
   });
+
+  const otpForm = useForm({
+    resolver: zodResolver(otpSchema),
+  });
+
+  useEffect(() => {
+    if (pendingEmail) {
+      resetPasswordForm.setValue('email', pendingEmail);
+      otpForm.setValue('email', pendingEmail);
+    }
+  }, [pendingEmail, resetPasswordForm, otpForm]);
 
   const handleLogin = async (data) => {
     try {
@@ -173,18 +180,47 @@ function LoginPage() {
           <p className="text-muted mb-6">Enter the 6-digit code sent to {pendingEmail}</p>
           
           <form onSubmit={otpForm.handleSubmit(handleVerifyOTP)} className="space-y-4">
-            <div>
-              <input
-                {...otpForm.register('otp')}
-                type="text"
-                maxLength="6"
-                placeholder="000000"
-                className="w-full px-4 py-3 border border-border rounded-btn text-center text-2xl tracking-[0.5em] focus:outline-none focus:border-mint"
-              />
-              {otpForm.formState.errors.otp && (
-                <p className="text-red text-sm mt-1">{otpForm.formState.errors.otp.message}</p>
-              )}
+            <div className="flex gap-2 justify-center">
+              {[...Array(6)].map((_, i) => (
+                <input
+                  key={i}
+                  type="text"
+                  maxLength={1}
+                  className="w-12 h-14 text-center text-2xl font-bold font-mono border-2 border-border rounded-lg focus:border-mint focus:outline-none bg-transparent transition-colors"
+                  value={otpValue[i] || ''}
+                  onChange={e => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    const newOtp = otpValue.split('');
+                    newOtp[i] = val;
+                    const finalOtp = newOtp.join('');
+                    setOtpValue(finalOtp);
+                    otpForm.setValue('otp', finalOtp);
+                    if (val && e.target.nextSibling) e.target.nextSibling.focus();
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === 'Backspace' && !otpValue[i] && e.target.previousSibling) {
+                      e.target.previousSibling.focus();
+                    }
+                  }}
+                  onPaste={e => {
+                    e.preventDefault();
+                    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+                    if (pastedData) {
+                      setOtpValue(pastedData);
+                      otpForm.setValue('otp', pastedData);
+                      const nextIndex = Math.min(pastedData.length, 5);
+                      setTimeout(() => {
+                        const inputs = e.target.parentElement.querySelectorAll('input');
+                        if (inputs[nextIndex]) inputs[nextIndex].focus();
+                      }, 0);
+                    }
+                  }}
+                />
+              ))}
             </div>
+            {otpForm.formState.errors.otp && (
+              <p className="text-red text-sm mt-1 text-center">{otpForm.formState.errors.otp.message}</p>
+            )}
             
             <button
               type="submit"

@@ -1,18 +1,39 @@
 import nodemailer from 'nodemailer';
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+let transporter = null;
+
+function getTransporter() {
+  if (transporter) return transporter;
+  const host = process.env.SMTP_HOST;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  if (!host || !user || !pass) return null;
+  transporter = nodemailer.createTransport({
+    host,
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: process.env.SMTP_SECURE === 'true',
+    auth: { user, pass },
+  });
+  return transporter;
+}
+
+export function isEmailConfigured() {
+  return Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+}
+
+async function sendMail(mailOptions) {
+  const tx = getTransporter();
+  if (!tx) {
+    const err = new Error('Email service is not configured. Set SMTP_HOST, SMTP_USER, and SMTP_PASS.');
+    err.statusCode = 503;
+    throw err;
+  }
+  await tx.sendMail(mailOptions);
+}
 
 export const sendVerificationEmail = async (email, otp) => {
-  const mailOptions = {
-    from: process.env.SMTP_USER,
+  await sendMail({
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
     to: email,
     subject: 'MedSync Pharmacist Portal - Verify Your Email',
     html: `
@@ -31,14 +52,12 @@ export const sendVerificationEmail = async (email, otp) => {
         </div>
       </div>
     `,
-  };
-
-  await transporter.sendMail(mailOptions);
+  });
 };
 
 export const sendResetOTPEmail = async (email, otp) => {
-  const mailOptions = {
-    from: process.env.SMTP_USER,
+  await sendMail({
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
     to: email,
     subject: 'MedSync Pharmacist Portal - Password Reset',
     html: `
@@ -57,14 +76,12 @@ export const sendResetOTPEmail = async (email, otp) => {
         </div>
       </div>
     `,
-  };
-
-  await transporter.sendMail(mailOptions);
+  });
 };
 
 export const sendOfferEmail = async ({ to, patientName, pharmacyName, offerTitle, offerMessage, medicineName, expiresAt }) => {
-  const mailOptions = {
-    from: process.env.SMTP_USER,
+  await sendMail({
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
     to,
     subject: `Special Offer from ${pharmacyName} - ${offerTitle}`,
     html: `
@@ -88,7 +105,5 @@ export const sendOfferEmail = async ({ to, patientName, pharmacyName, offerTitle
         </div>
       </div>
     `,
-  };
-
-  await transporter.sendMail(mailOptions);
+  });
 };

@@ -15,7 +15,7 @@ const calculateStockStatus = (medicine) => {
 
 // Run daily at 3:15 UTC (9:00 AM NPT)
 cron.schedule('15 3 * * *', async () => {
-  console.log('Running low stock alerts cron job...');
+  // console.log('Running low stock alerts cron job...');
   
   try {
     // Fetch all PatientLinks
@@ -48,10 +48,10 @@ cron.schedule('15 3 * * *', async () => {
       }
     }
 
-    console.log('Low stock alerts cron job completed.');
+    // console.log('Low stock alerts cron job completed.');
   } catch (error) {
-    console.error('Error in low stock alerts cron job:', error);
+    // console.error('Error in low stock alerts cron job:', error);
   }
 });
 
-console.log('Low stock alerts cron job scheduled for 3:15 UTC daily.');
+// console.log('Low stock alerts cron job scheduled for 3:15 UTC daily.');

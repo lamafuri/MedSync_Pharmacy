@@ -20,7 +20,7 @@ connectDB();
 
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5174',
+  origin: ['http://localhost:5174', 'http://127.0.0.1:5174'],
   credentials: true,
 }));
 app.use(express.json());
@@ -48,6 +48,6 @@ app.use(errorHandler);
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  // console.log(`Server running on port ${PORT}`);
+  // console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });

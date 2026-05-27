@@ -9,9 +9,14 @@ axiosInstance.interceptors.request.use(
   (config) => {
     const authData = localStorage.getItem('pharmacist-auth');
     if (authData) {
-      const { token } = JSON.parse(authData);
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+      try {
+        const parsed = JSON.parse(authData);
+        const token = parsed?.state?.token;
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      } catch (err) {
+        // Ignore parse errors
       }
     }
     return config;

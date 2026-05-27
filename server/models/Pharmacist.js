@@ -72,13 +72,15 @@ const pharmacistSchema = new mongoose.Schema({
 });
 
 // Hash password before saving
-pharmacistSchema.pre('save', async function(next) {
+pharmacistSchema.pre('save', async function() {
+  // If the password hasn't been modified, just return early to stop execution
   if (!this.isModified('password')) {
-    return next();
+    return;
   }
+  
+  // Hash the password
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
 // Method to match password

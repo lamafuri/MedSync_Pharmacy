@@ -1,5 +1,5 @@
 export const errorHandler = (err, req, res, next) => {
-  console.error(err.stack);
+  // console.error(err.stack);
 
   if (err.name === 'ValidationError') {
     const errors = Object.values(err.errors).map(e => e.message);
