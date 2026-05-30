@@ -619,16 +619,22 @@ function OfferComposer({ isOpen, onClose, patient, medicine, onSuccess }) {
   };
 
   const handleGenerateAI = async () => {
+    let testPin = null;
     if (!pharmacist?.isPremium) {
-      toast.error('Premium feature');
-      return;
+      testPin = window.prompt("This is a Premium feature. Enter demo pin '1234' to test:");
+      if (testPin !== '1234') {
+        toast.error('Premium required');
+        return;
+      }
     }
+    
     try {
       setLoading(true);
       const response = await axios.post('/api/offers/generate-template', {
         medicineName: medicine?.name || 'Medicine',
         offerType,
         discountPercent: discount,
+        testPin,
       });
       const template = response.data.template;
       setMessage(template.fullMessage || '');

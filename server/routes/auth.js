@@ -6,6 +6,7 @@ import Pharmacist from '../models/Pharmacist.js';
 import PendingPharmacistRegistration from '../models/PendingPharmacistRegistration.js';
 import { generateOTP } from '../utils/generateOTP.js';
 import { sendVerificationEmail, sendResetOTPEmail } from '../utils/sendEmail.js';
+import { protectPharmacist } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -377,6 +378,9 @@ router.post(
     }
   }
 );
+
+// Protect all routes below this point
+router.use(protectPharmacist);
 
 // GET /api/auth/me
 router.get('/me', async (req, res, next) => {
