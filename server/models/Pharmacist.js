@@ -88,4 +88,4 @@ pharmacistSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-export default mongoose.model('Pharmacist', pharmacistSchema);
+export default mongoose.models.Pharmacist || mongoose.model('Pharmacist', pharmacistSchema);

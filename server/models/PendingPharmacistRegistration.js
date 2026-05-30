@@ -18,4 +18,4 @@ const pendingPharmacistRegistrationSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('PendingPharmacistRegistration', pendingPharmacistRegistrationSchema);
+export default mongoose.models.PendingPharmacistRegistration || mongoose.model('PendingPharmacistRegistration', pendingPharmacistRegistrationSchema);

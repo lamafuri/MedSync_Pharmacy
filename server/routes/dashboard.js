@@ -4,6 +4,7 @@ import PatientLink from '../models/PatientLink.js';
 import Patient from '../models/shared/Patient.js';
 import Medicine from '../models/shared/Medicine.js';
 import Offer from '../models/Offer.js';
+import PharmacistInvitation from '../models/PharmacistInvitation.js';
 
 const router = express.Router();
 
@@ -31,55 +32,65 @@ router.get('/patients', async (req, res, next) => {
     const patientLinks = await PatientLink.find({ pharmacistId });
 
     const patients = [];
+    const processedPatientIds = new Set();
 
     for (const link of patientLinks) {
-      // Fetch patient from shared DB
-      const patient = await Patient.findById(link.patientId);
-      if (!patient) continue;
+      // Fetch patient from shared DB to get userId
+      const linkedPatient = await Patient.findById(link.patientId).lean();
+      if (!linkedPatient) continue;
 
-      // Fetch active medicines from shared DB
-      const medicines = await Medicine.find({ 
-        patientId: patient._id,
-        isActive: true 
-      });
+      // Fetch all family members sharing the same userId
+      const familyPatients = await Patient.find({ userId: linkedPatient.userId }).lean();
 
-      // Calculate stock status for each medicine
-      const medicinesWithStatus = medicines.map(med => ({
-        _id: med._id,
-        name: med.name,
-        strength: med.strength,
-        unit: med.unit,
-        currentStock: med.currentStock,
-        frequencyPerDay: med.frequencyPerDay,
-        dosePerIntake: med.dosePerIntake,
-        refillThreshold: med.refillThreshold,
-        ...calculateStockStatus(med),
-      }));
+      for (const patient of familyPatients) {
+        if (processedPatientIds.has(patient._id.toString())) continue;
+        processedPatientIds.add(patient._id.toString());
 
-      // Determine alert level (worst medicine status)
-      let alertLevel = 'green';
-      const medicinesNeedingRefill = medicinesWithStatus.filter(m => m.stockStatus !== 'green');
-      
-      if (medicinesWithStatus.some(m => m.stockStatus === 'red')) {
-        alertLevel = 'red';
-      } else if (medicinesWithStatus.some(m => m.stockStatus === 'amber')) {
-        alertLevel = 'amber';
+        // Fetch active medicines from shared DB
+        const medicines = await Medicine.find({ 
+          patientId: patient._id,
+          isActive: true 
+        }).lean();
+
+        // Calculate stock status for each medicine
+        const medicinesWithStatus = medicines.map(med => ({
+          _id: med._id,
+          name: med.name,
+          strength: med.strength,
+          unit: med.unit,
+          currentStock: med.currentStock,
+          frequencyPerDay: med.frequencyPerDay,
+          dosePerIntake: med.dosePerIntake,
+          refillThreshold: med.refillThreshold,
+          ...calculateStockStatus(med),
+        }));
+
+        // Determine alert level (worst medicine status)
+        let alertLevel = 'green';
+        const medicinesNeedingRefill = medicinesWithStatus.filter(m => m.stockStatus !== 'green');
+        
+        if (medicinesWithStatus.some(m => m.stockStatus === 'red')) {
+          alertLevel = 'red';
+        } else if (medicinesWithStatus.some(m => m.stockStatus === 'amber')) {
+          alertLevel = 'amber';
+        }
+
+        patients.push({
+          _id: patient._id,
+          name: patient.name,
+          relation: patient.relation || 'self',
+          allergies: patient.allergies,
+          qrToken: patient.qrToken,
+          patientEmail: link.patientEmail,
+          patientPhone: link.patientPhone,
+          patientAddress: link.patientAddress,
+          alertLevel,
+          medicinesNeedingRefill: medicinesNeedingRefill.length,
+          medicines: medicinesWithStatus,
+          notifyLowStock: link.notifyLowStock,
+          notifyOffers: link.notifyOffers,
+        });
       }
-
-      patients.push({
-        _id: patient._id,
-        name: patient.name,
-        allergies: patient.allergies,
-        qrToken: patient.qrToken,
-        patientEmail: link.patientEmail,
-        patientPhone: link.patientPhone,
-        patientAddress: link.patientAddress,
-        alertLevel,
-        medicinesNeedingRefill: medicinesNeedingRefill.length,
-        medicines: medicinesWithStatus,
-        notifyLowStock: link.notifyLowStock,
-        notifyOffers: link.notifyOffers,
-      });
     }
 
     // Sort: red → amber → green
@@ -127,10 +138,36 @@ router.post('/patients/link', [
     const { qrToken, patientEmail, patientPhone, patientAddress } = req.body;
     const pharmacistId = req.pharmacist._id;
 
-    // Find patient by qrToken in shared DB
-    const patient = await Patient.findOne({ qrToken });
-    if (!patient) {
-      return res.status(404).json({ message: 'Invalid QR token or patient not found' });
+    const isOtp = qrToken.length === 8 && /^\d+$/.test(qrToken);
+    
+    const query = isOtp ? { otp: qrToken } : { qrToken: qrToken };
+    const invitation = await PharmacistInvitation.findOne({
+      ...query,
+      expiresAt: { $gt: new Date() },
+    });
+
+    let patient;
+    if (invitation) {
+      if (isOtp && invitation.otpUsed) {
+        return res.status(400).json({ message: 'OTP has already been used' });
+      }
+      if (!isOtp && invitation.qrUsed) {
+        return res.status(400).json({ message: 'QR token has already been used' });
+      }
+      
+      patient = await Patient.findOne({ userId: invitation.userId });
+      if (!patient) {
+        return res.status(404).json({ message: 'Patient not found for this invitation' });
+      }
+
+      if (isOtp) invitation.otpUsed = true;
+      else invitation.qrUsed = true;
+      await invitation.save();
+    } else {
+      patient = await Patient.findOne({ qrToken });
+      if (!patient) {
+        return res.status(404).json({ message: isOtp ? 'Invalid or expired OTP' : 'Invalid QR token or patient not found' });
+      }
     }
 
     // Check if already linked
@@ -147,7 +184,7 @@ router.post('/patients/link', [
     const patientLink = await PatientLink.create({
       pharmacistId,
       patientId: patient._id,
-      qrToken,
+      qrToken: invitation ? invitation.qrToken : qrToken,
       patientEmail: patientEmail || null,
       patientPhone: patientPhone || null,
       patientAddress: patientAddress || null,
@@ -222,6 +259,9 @@ router.put('/patients/:patientId/contact', [
     });
   } catch (error) {
     next(error);
+  }
+});
+
 // POST /api/dashboard/patients/bulk-email
 router.post('/patients/bulk-email', [
   body('patientIds').isArray().withMessage('patientIds must be an array'),

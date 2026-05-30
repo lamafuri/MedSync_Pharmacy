@@ -11,6 +11,7 @@ import {
   Bell,
   X,
   ChevronDown,
+  Link,
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import Modal from './Modal';
@@ -29,6 +30,7 @@ function AppShell() {
   const navItems = [
     { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/patients', icon: Users, label: 'Patients' },
+    { path: '/linked-patients', icon: Link, label: 'Linked Patients' },
     { path: '/offers', icon: Gift, label: 'Offers' },
     { path: '/analytics', icon: BarChart3, label: 'Analytics', premium: true },
   ];

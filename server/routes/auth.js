@@ -32,7 +32,13 @@ function pharmacistResponse(pharmacist) {
 }
 
 async function sendRegistrationOtp(pending) {
-  await sendVerificationEmail(pending.email, pending.verifyOtp);
+  try {
+    await sendVerificationEmail(pending.email, pending.verifyOtp);
+  } catch (error) {
+    // Log error without sensitive information
+    // console.error('Failed to send verification email:', error.message);
+    throw error;
+  }
 }
 
 // POST /api/auth/register — stores in pending collection only until verified
@@ -93,7 +99,19 @@ router.post(
       }
 
       await pending.save();
-      await sendRegistrationOtp(pending);
+      
+      try {
+        await sendRegistrationOtp(pending);
+      } catch (emailError) {
+        // If email sending fails, still save the pending registration
+        // but inform the user about the email issue
+        // console.error('Email sending failed but registration saved:', emailError.message);
+        return res.status(503).json({
+          message: 'Registration saved but email service unavailable. Please request OTP resend.',
+          email: normalizedEmail,
+          needsResend: true,
+        });
+      }
 
       res.status(201).json({
         message: 'Registration started. Please check your email for the verification code.',
@@ -257,7 +275,14 @@ router.post(
       pending.verifyOtpExpires = new Date(Date.now() + 15 * 60 * 1000);
       await pending.save();
 
-      await sendRegistrationOtp(pending);
+      try {
+        await sendRegistrationOtp(pending);
+      } catch (emailError) {
+        // console.error('Email sending failed:', emailError.message);
+        return res.status(503).json({
+          message: 'Email service unavailable. Please try again later.',
+        });
+      }
 
       res.json({ message: 'Verification OTP sent successfully' });
     } catch (error) {
@@ -291,7 +316,14 @@ router.post(
       pharmacist.resetOtpExpires = otpExpires;
       await pharmacist.save();
 
-      await sendResetOTPEmail(normalizedEmail, otp);
+      try {
+        await sendResetOTPEmail(normalizedEmail, otp);
+      } catch (emailError) {
+        // console.error('Email sending failed:', emailError.message);
+        return res.status(503).json({
+          message: 'Email service unavailable. Please try again later.',
+        });
+      }
 
       res.json({ message: 'Password reset OTP sent successfully' });
     } catch (error) {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Plus, Link2, Unlink, Send, Mail, Phone, MapPin, Edit2, X } from 'lucide-react';
 import axios from '../lib/axios';
+import { useAuthStore } from '../store/authStore';
 import StockBadge from '../components/StockBadge';
 import Modal from '../components/Modal';
 import SkeletonCard from '../components/SkeletonCard';
@@ -22,6 +23,9 @@ function PatientsPage() {
   const [linkForm, setLinkForm] = useState({ qrToken: '', patientEmail: '', patientPhone: '', patientAddress: '' });
   const [contactForm, setContactForm] = useState({ patientEmail: '', patientPhone: '', patientAddress: '' });
   const [bulkEmailForm, setBulkEmailForm] = useState({ subject: '', message: '' });
+  
+  const [showOfferComposer, setShowOfferComposer] = useState(false);
+  const [offerPatient, setOfferPatient] = useState(null);
 
   useEffect(() => {
     fetchPatients();
@@ -100,6 +104,11 @@ function PatientsPage() {
       patientAddress: patient.patientAddress || '',
     });
     setShowEditContactModal(true);
+  };
+
+  const handleSendOffer = (patient) => {
+    setOfferPatient(patient);
+    setShowOfferComposer(true);
   };
 
   const filteredPatients = patients.filter(p => {
@@ -226,7 +235,7 @@ function PatientsPage() {
             onSelectToggle={() => togglePatientSelection(patient._id)}
             onUnlink={() => handleUnlinkPatient(patient._id)}
             onEditContact={() => openEditContact(patient)}
-            onSendOffer={() => {/* Navigate to offers page with patient pre-selected */}}
+            onSendOffer={() => handleSendOffer(patient)}
           />
         ))}
       </div>
@@ -278,12 +287,12 @@ function PatientsPage() {
       <Modal isOpen={showLinkModal} onClose={() => setShowLinkModal(false)} title="Link Patient">
         <form onSubmit={handleLinkPatient} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-primary mb-2">QR Token *</label>
+            <label className="block text-sm font-medium text-primary mb-2">QR Token or OTP *</label>
             <input
               type="text"
               value={linkForm.qrToken}
               onChange={(e) => setLinkForm({ ...linkForm, qrToken: e.target.value })}
-              placeholder="Enter patient's QR token"
+              placeholder="Enter patient's QR token or 8-digit OTP"
               className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
               required
             />
@@ -386,6 +395,23 @@ function PatientsPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Offer Composer Modal */}
+      {showOfferComposer && offerPatient && (
+        <OfferComposer
+          isOpen={showOfferComposer}
+          onClose={() => {
+            setShowOfferComposer(false);
+            setOfferPatient(null);
+          }}
+          patient={offerPatient}
+          medicine={null}
+          onSuccess={() => {
+            setShowOfferComposer(false);
+            setOfferPatient(null);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -411,8 +437,15 @@ function PatientCard({ patient, onUnlink, onEditContact, onSendOffer, isSelected
             {patient.name?.charAt(0) || 'P'}
           </div>
           <div>
-            <h3 className="font-semibold text-primary">{patient.name}</h3>
-            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${alertColors[patient.alertLevel]}`}>
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-primary">{patient.name}</h3>
+              {patient.relation && patient.relation !== 'self' && (
+                <span className="px-1.5 py-0.5 bg-faint text-muted rounded text-[10px] font-medium uppercase tracking-wider">
+                  {patient.relation}
+                </span>
+              )}
+            </div>
+            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold inline-block mt-1 ${alertColors[patient.alertLevel]}`}>
               {patient.alertLevel === 'red' ? 'Critical' : patient.alertLevel === 'amber' ? 'Warning' : 'Healthy'}
             </span>
           </div>
@@ -501,6 +534,186 @@ function MedicineMiniCard({ medicine }) {
         <div className={`h-1.5 rounded-full ${progressColor}`} style={{ width: `${progressPercent}%` }} />
       </div>
     </div>
+  );
+}
+
+function OfferComposer({ isOpen, onClose, patient, medicine, onSuccess }) {
+  const [offerType, setOfferType] = useState('discount');
+  const [discount, setDiscount] = useState(10);
+  const [message, setMessage] = useState('');
+  const [channels, setChannels] = useState(['email', 'in_app']);
+  const [expiresAt, setExpiresAt] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { pharmacist } = useAuthStore();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      await axios.post('/api/offers', {
+        patientId: patient._id,
+        medicineName: medicine?.name || 'Medicine',
+        offerType,
+        discountPercent: offerType === 'discount' ? discount : 0,
+        title: `${offerType === 'discount' ? `${discount}% Off` : offerType} - ${medicine?.name || 'Special Offer'}`,
+        fullMessage: message,
+        shortMessage: message.substring(0, 100),
+        channels,
+        expiresAt: expiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      });
+      toast.success('Offer sent successfully');
+      onSuccess();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to send offer');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGenerateAI = async () => {
+    if (!pharmacist?.isPremium) {
+      toast.error('Premium feature');
+      return;
+    }
+    try {
+      setLoading(true);
+      const response = await axios.post('/api/offers/generate-template', {
+        medicineName: medicine?.name || 'Medicine',
+        offerType,
+        discountPercent: discount,
+      });
+      const template = response.data.template;
+      setMessage(template.fullMessage || '');
+      toast.success('AI template generated');
+    } catch (error) {
+      toast.error('Failed to generate template');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Send Offer" size="lg">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="flex items-center gap-4 pb-4 border-b border-border">
+          <div className="w-12 h-12 bg-navy rounded-full flex items-center justify-center text-white font-semibold">
+            {patient.name?.charAt(0) || 'P'}
+          </div>
+          <div>
+            <p className="font-semibold text-primary">{patient.name}</p>
+            <p className="text-sm text-muted">{medicine?.name || 'General Offer'}</p>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-primary mb-2">Offer Type</label>
+          <div className="flex gap-2">
+            {['discount', 'buy2get1', 'bundle', 'custom'].map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setOfferType(type)}
+                className={`px-4 py-2 rounded-btn text-sm font-semibold capitalize transition-colors ${
+                  offerType === type ? 'bg-mint text-white' : 'bg-faint text-muted'
+                }`}
+              >
+                {type.replace('_', ' ')}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {offerType === 'discount' && (
+          <div>
+            <label className="block text-sm font-medium text-primary mb-2">Discount: {discount}%</label>
+            <input
+              type="range"
+              min="5"
+              max="50"
+              value={discount}
+              onChange={(e) => setDiscount(parseInt(e.target.value))}
+              className="w-full"
+            />
+          </div>
+        )}
+
+        <div>
+          <label className="block text-sm font-medium text-primary mb-2">Message</label>
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            rows={4}
+            maxLength={500}
+            placeholder="Write your offer message..."
+            className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint resize-none"
+          />
+          <p className="text-xs text-muted mt-1">{message.length}/500</p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleGenerateAI}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-faint text-muted rounded-btn text-sm font-semibold hover:bg-faint/80 disabled:opacity-50"
+          >
+            ✨ Generate with AI
+            {!pharmacist?.isPremium && <span className="text-amber">● Premium</span>}
+          </button>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-primary mb-2">Channels</label>
+          <div className="flex gap-4">
+            {['email', 'sms', 'in_app'].map((channel) => (
+              <label key={channel} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={channels.includes(channel)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setChannels([...channels, channel]);
+                    } else {
+                      setChannels(channels.filter(c => c !== channel));
+                    }
+                  }}
+                  disabled={channel === 'email' && !patient.patientEmail}
+                  className="w-4 h-4 accent-mint"
+                />
+                <span className="text-sm text-muted capitalize">{channel}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-primary mb-2">Expires At</label>
+          <input
+            type="date"
+            value={expiresAt}
+            onChange={(e) => setExpiresAt(e.target.value)}
+            className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+          />
+        </div>
+
+        <div className="flex gap-3 pt-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 py-3 bg-faint text-muted rounded-btn font-semibold hover:bg-faint/80"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex-1 py-3 bg-mint text-white rounded-btn font-semibold hover:bg-mint/90 disabled:opacity-50"
+          >
+            {loading ? 'Sending...' : 'Send Offer'}
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 }
 

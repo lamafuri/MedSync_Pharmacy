@@ -8,6 +8,7 @@ import authRoutes from './routes/auth.js';
 import dashboardRoutes from './routes/dashboard.js';
 import offerRoutes from './routes/offers.js';
 import notificationRoutes from './routes/notifications.js';
+import pharmacistLinkRoutes from './routes/pharmacistLinkRoutes.js';
 import './cron/lowStockAlerts.js';
 
 dotenv.config();
@@ -33,6 +34,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', protectPharmacist, dashboardRoutes);
 app.use('/api/offers', protectPharmacist, offerRoutes);
 app.use('/api/notifications', protectPharmacist, notificationRoutes);
+app.use('/api/pharmacist-links', protectPharmacist, pharmacistLinkRoutes);
 
 // Apply requirePremium to specific offer routes
 app.use('/api/offers/generate-template', protectPharmacist, requirePremium);

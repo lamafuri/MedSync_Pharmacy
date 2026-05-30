@@ -20,31 +20,46 @@ cron.schedule('15 3 * * *', async () => {
   try {
     // Fetch all PatientLinks
     const patientLinks = await PatientLink.find({});
+    
+    // Group links by pharmacistId to avoid duplicate processing of the same user's family
+    const pharmacistUserCache = new Map();
 
     for (const link of patientLinks) {
       if (!link.notifyLowStock) continue;
 
-      // Fetch active medicines for this patient
-      const medicines = await Medicine.find({
-        patientId: link.patientId,
-        isActive: true,
-      });
+      const linkedPatient = await Patient.findById(link.patientId).lean();
+      if (!linkedPatient) continue;
+      
+      const cacheKey = `${link.pharmacistId}_${linkedPatient.userId}`;
+      if (pharmacistUserCache.has(cacheKey)) continue;
+      pharmacistUserCache.set(cacheKey, true);
 
-      // Check for red or amber status
-      const criticalMedicines = medicines.filter(med => {
-        const status = calculateStockStatus(med);
-        return status === 'red' || status === 'amber';
-      });
+      // Fetch all family members sharing the same userId
+      const familyPatients = await Patient.find({ userId: linkedPatient.userId }).lean();
 
-      if (criticalMedicines.length > 0) {
-        // Create notification for pharmacist
-        await Notification.create({
-          recipientId: link.pharmacistId,
-          recipientModel: 'Pharmacist',
-          type: 'low_stock',
-          title: 'Low Stock Alert',
-          message: `${criticalMedicines.length} medicine(s) need attention for a linked patient.`,
+      for (const patient of familyPatients) {
+        // Fetch active medicines for this specific patient
+        const medicines = await Medicine.find({
+          patientId: patient._id,
+          isActive: true,
+        }).lean();
+
+        // Check for red or amber status
+        const criticalMedicines = medicines.filter(med => {
+          const status = calculateStockStatus(med);
+          return status === 'red' || status === 'amber';
         });
+
+        if (criticalMedicines.length > 0) {
+          // Create notification for pharmacist
+          await Notification.create({
+            recipientId: link.pharmacistId,
+            recipientModel: 'Pharmacist',
+            type: 'low_stock',
+            title: 'Low Stock Alert',
+            message: `${criticalMedicines.length} medicine(s) need attention for a linked patient (${patient.name}).`,
+          });
+        }
       }
     }
 

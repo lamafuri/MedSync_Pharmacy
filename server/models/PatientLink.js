@@ -42,4 +42,4 @@ const patientLinkSchema = new mongoose.Schema({
 // Unique index on pharmacistId and patientId combination
 patientLinkSchema.index({ pharmacistId: 1, patientId: 1 }, { unique: true });
 
-export default mongoose.model('PatientLink', patientLinkSchema);
+export default mongoose.models.PatientLink || mongoose.model('PatientLink', patientLinkSchema);

@@ -46,6 +46,7 @@ function LoginPage() {
   const [resetStep, setResetStep] = useState('request');
   const [pendingEmail, setPendingEmail] = useState('');
   const [otpValue, setOtpValue] = useState('');
+  const [resetOtpValue, setResetOtpValue] = useState('');
   const [loading, setLoading] = useState(false);
 
   const loginForm = useForm({
@@ -102,8 +103,14 @@ function LoginPage() {
       setLoading(true);
       const response = await axios.post('/api/auth/register', data);
       setPendingEmail(data.email);
+      setOtpValue('');
       setShowOTP(true);
-      toast.success('Registration successful. Check your email for OTP.');
+      
+      if (response.data.needsResend) {
+        toast.error('Email service unavailable. Please click Resend OTP.');
+      } else {
+        toast.success('Registration successful. Check your email for OTP.');
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Registration failed');
     } finally {
@@ -116,6 +123,7 @@ function LoginPage() {
       setLoading(true);
       const response = await axios.post('/api/auth/verify-email', data);
       login(response.data.pharmacist, response.data.token);
+      setOtpValue('');
       toast.success('Email verified successfully');
       navigate('/');
     } catch (error) {
@@ -128,10 +136,14 @@ function LoginPage() {
   const handleResendOTP = async () => {
     try {
       setLoading(true);
-      await axios.post('/api/auth/send-verify-otp', { email: pendingEmail });
+      const response = await axios.post('/api/auth/send-verify-otp', { email: pendingEmail });
       toast.success('OTP resent successfully');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to resend OTP');
+      if (error.response?.status === 503) {
+        toast.error('Email service unavailable. Please try again later.');
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to resend OTP');
+      }
     } finally {
       setLoading(false);
     }
@@ -143,6 +155,7 @@ function LoginPage() {
       await axios.post('/api/auth/forgot-password/request-otp', data);
       setPendingEmail(data.email);
       setResetStep('reset');
+      setResetOtpValue('');
       toast.success('OTP sent to your email');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to send OTP');
@@ -157,6 +170,7 @@ function LoginPage() {
       await axios.post('/api/auth/forgot-password/reset', data);
       setShowForgotPassword(false);
       setResetStep('request');
+      setResetOtpValue('');
       toast.success('Password reset successful');
       setTab('signin');
     } catch (error) {
@@ -171,7 +185,10 @@ function LoginPage() {
       <div className="min-h-screen flex items-center justify-center bg-bg p-4">
         <div className="w-full max-w-md bg-card rounded-card shadow-modal p-8">
           <button
-            onClick={() => setShowOTP(false)}
+            onClick={() => {
+              setShowOTP(false);
+              setOtpValue('');
+            }}
             className="text-muted hover:text-primary mb-6 flex items-center gap-2"
           >
             ← Back
@@ -186,6 +203,8 @@ function LoginPage() {
                   key={i}
                   type="text"
                   maxLength={1}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   className="w-12 h-14 text-center text-2xl font-bold font-mono border-2 border-border rounded-lg focus:border-mint focus:outline-none bg-transparent transition-colors"
                   value={otpValue[i] || ''}
                   onChange={e => {
@@ -195,11 +214,15 @@ function LoginPage() {
                     const finalOtp = newOtp.join('');
                     setOtpValue(finalOtp);
                     otpForm.setValue('otp', finalOtp);
-                    if (val && e.target.nextSibling) e.target.nextSibling.focus();
+                    if (val && i < 5) {
+                      const inputs = e.target.parentElement.querySelectorAll('input');
+                      if (inputs[i + 1]) inputs[i + 1].focus();
+                    }
                   }}
                   onKeyDown={e => {
-                    if (e.key === 'Backspace' && !otpValue[i] && e.target.previousSibling) {
-                      e.target.previousSibling.focus();
+                    if (e.key === 'Backspace' && !otpValue[i] && i > 0) {
+                      const inputs = e.target.parentElement.querySelectorAll('input');
+                      if (inputs[i - 1]) inputs[i - 1].focus();
                     }
                   }}
                   onPaste={e => {
@@ -252,6 +275,7 @@ function LoginPage() {
             onClick={() => {
               setShowForgotPassword(false);
               setResetStep('request');
+              setResetOtpValue('');
             }}
             className="text-muted hover:text-primary mb-6 flex items-center gap-2"
           >
@@ -291,18 +315,53 @@ function LoginPage() {
               <p className="text-muted mb-6">Enter the code sent to {pendingEmail}</p>
               
               <form onSubmit={resetPasswordForm.handleSubmit(handleResetPassword)} className="space-y-4">
-                <div>
-                  <input
-                    {...resetPasswordForm.register('otp')}
-                    type="text"
-                    maxLength="6"
-                    placeholder="000000"
-                    className="w-full px-4 py-3 border border-border rounded-btn text-center text-2xl tracking-[0.5em] focus:outline-none focus:border-mint"
-                  />
-                  {resetPasswordForm.formState.errors.otp && (
-                    <p className="text-red text-sm mt-1">{resetPasswordForm.formState.errors.otp.message}</p>
-                  )}
+                <div className="flex gap-2 justify-center">
+                  {[...Array(6)].map((_, i) => (
+                    <input
+                      key={`reset-${i}`}
+                      type="text"
+                      maxLength={1}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      className="w-12 h-14 text-center text-2xl font-bold font-mono border-2 border-border rounded-lg focus:border-mint focus:outline-none bg-transparent transition-colors"
+                      value={resetOtpValue[i] || ''}
+                      onChange={e => {
+                        const val = e.target.value.replace(/\D/g, '');
+                        const newOtp = resetOtpValue.split('');
+                        newOtp[i] = val;
+                        const finalOtp = newOtp.join('');
+                        setResetOtpValue(finalOtp);
+                        resetPasswordForm.setValue('otp', finalOtp);
+                        if (val && i < 5) {
+                          const inputs = e.target.parentElement.querySelectorAll('input');
+                          if (inputs[i + 1]) inputs[i + 1].focus();
+                        }
+                      }}
+                      onKeyDown={e => {
+                        if (e.key === 'Backspace' && !resetOtpValue[i] && i > 0) {
+                          const inputs = e.target.parentElement.querySelectorAll('input');
+                          if (inputs[i - 1]) inputs[i - 1].focus();
+                        }
+                      }}
+                      onPaste={e => {
+                        e.preventDefault();
+                        const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+                        if (pastedData) {
+                          setResetOtpValue(pastedData);
+                          resetPasswordForm.setValue('otp', pastedData);
+                          const nextIndex = Math.min(pastedData.length, 5);
+                          setTimeout(() => {
+                            const inputs = e.target.parentElement.querySelectorAll('input');
+                            if (inputs[nextIndex]) inputs[nextIndex].focus();
+                          }, 0);
+                        }
+                      }}
+                    />
+                  ))}
                 </div>
+                {resetPasswordForm.formState.errors.otp && (
+                  <p className="text-red text-sm mt-1 text-center">{resetPasswordForm.formState.errors.otp.message}</p>
+                )}
                 
                 <div>
                   <input

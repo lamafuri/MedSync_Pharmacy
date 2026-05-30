@@ -70,4 +70,4 @@ const offerSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-export default mongoose.model('Offer', offerSchema);
+export default mongoose.models.Offer || mongoose.model('Offer', offerSchema);
