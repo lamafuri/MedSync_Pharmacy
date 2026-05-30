@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, Link2, Unlink, Send, Mail, Phone, MapPin, Edit2, X } from 'lucide-react';
+import { Search, Plus, Link2, Unlink, Send, Mail, Phone, MapPin, Edit2, X, ChevronDown, ChevronUp } from 'lucide-react';
 import axios from '../lib/axios';
 import { useAuthStore } from '../store/authStore';
 import StockBadge from '../components/StockBadge';
@@ -26,6 +26,14 @@ function PatientsPage() {
   
   const [showOfferComposer, setShowOfferComposer] = useState(false);
   const [offerPatient, setOfferPatient] = useState(null);
+  const [expandedGroups, setExpandedGroups] = useState({});
+
+  const toggleGroup = (userId) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [userId]: !prev[userId]
+    }));
+  };
 
   useEffect(() => {
     fetchPatients();
@@ -225,18 +233,58 @@ function PatientsPage() {
         </div>
       )}
 
-      {/* Patient Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {filteredPatients.map((patient) => (
-          <PatientCard
-            key={patient._id}
-            patient={patient}
-            isSelected={selectedPatients.includes(patient._id)}
-            onSelectToggle={() => togglePatientSelection(patient._id)}
-            onUnlink={() => handleUnlinkPatient(patient._id)}
-            onEditContact={() => openEditContact(patient)}
-            onSendOffer={() => handleSendOffer(patient)}
-          />
+      {/* Patient Grid (Hierarchical) */}
+      <div className="space-y-4">
+        {Object.entries(
+          filteredPatients.reduce((acc, patient) => {
+            const key = patient.userId || patient._id;
+            if (!acc[key]) {
+              acc[key] = {
+                mainAccountName: patient.mainAccountName || patient.name,
+                members: []
+              };
+            }
+            acc[key].members.push(patient);
+            return acc;
+          }, {})
+        ).map(([userId, group]) => (
+          <div key={userId} className="bg-card rounded-card border border-border shadow-card overflow-hidden">
+            <button
+              onClick={() => toggleGroup(userId)}
+              className="w-full flex items-center justify-between p-4 hover:bg-faint transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-navy rounded-full flex items-center justify-center text-white font-semibold">
+                  {group.mainAccountName?.charAt(0) || 'P'}
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold text-primary text-lg">{group.mainAccountName}'s Account</h3>
+                  <p className="text-sm text-muted">{group.members.length} Profile{group.members.length !== 1 ? 's' : ''}</p>
+                </div>
+              </div>
+              <div className="text-muted">
+                {expandedGroups[userId] ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+              </div>
+            </button>
+            
+            {expandedGroups[userId] && (
+              <div className="p-4 border-t border-border bg-faint/30">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {group.members.map((patient) => (
+                    <PatientCard
+                      key={patient._id}
+                      patient={patient}
+                      isSelected={selectedPatients.includes(patient._id)}
+                      onSelectToggle={() => togglePatientSelection(patient._id)}
+                      onUnlink={() => handleUnlinkPatient(patient._id)}
+                      onEditContact={() => openEditContact(patient)}
+                      onSendOffer={() => handleSendOffer(patient)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         ))}
       </div>
 

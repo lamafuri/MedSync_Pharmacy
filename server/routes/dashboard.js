@@ -75,8 +75,13 @@ router.get('/patients', async (req, res, next) => {
           alertLevel = 'amber';
         }
 
+        const mainAccount = familyPatients.find(p => p.relation === 'self') || linkedPatient;
+
         patients.push({
           _id: patient._id,
+          userId: linkedPatient.userId,
+          linkId: link._id,
+          mainAccountName: mainAccount.name,
           name: patient.name,
           relation: patient.relation || 'self',
           allergies: patient.allergies,
