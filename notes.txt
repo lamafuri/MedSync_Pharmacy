@@ -1,0 +1,21 @@
+Give me a summary of my web app complete .Then augment the summary to generate prompt, to create a interface/dashboard for the pharmacist, so that they can login from there , where they will get information about the patient and their medicine stock. 
+Fetures and Action pharmacist can perform from the dashboard:
+    - the web app will have access to the database
+    - Database contains:
+        patients infroamtion : name , address , phone number , email address
+        patients medicine stock : how much medicne is remaining , medicne name , strength
+
+    - Now based on the medince stock tracked , if the patient stock is close to be finished , it will be listed on the pharmacist dashboard
+    - then the pharmacist can send offer (like discount , buy 2 get 1 free on the medicine that is going to be finished) directly to the patient (email , sms , etc) from the dashboard
+
+    - the offer can also be directly send via website directly, and the patients will be sent a notification
+
+    - If the pharmacist has premium version of our web app , then the pharmacist can generate offer template,poster,offer discout amount estimation , and many more
+
+    -  
+    
+Login page refresh on invalid credentials instead of showing warning.
+
+    
+
+     
