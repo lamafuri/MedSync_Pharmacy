@@ -216,7 +216,8 @@ function AppShell() {
         </header>
 
         {/* Page Content */}
-        <main className="p-4 lg:p-8">
+        {/* pb-20 on mobile clears the fixed bottom nav (~69px); lg:p-8 resets all padding on desktop */}
+        <main className="p-4 pb-20 lg:p-8">
           <Outlet />
         </main>
       </div>
