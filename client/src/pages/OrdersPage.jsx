@@ -125,11 +125,11 @@ function PricingPanel({ order, onSave, onCancel }) {
               {/* Medicine info */}
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-primary text-sm truncate">{row.name}</p>
-                {(row.strength || row.unit) && (
+                {(row.strength && row.strength !== '0') || row.unit ? (
                   <p className="text-xs text-muted mt-0.5">
-                    {[row.strength, row.unit].filter(Boolean).join(' · ')}
+                    {[row.strength !== '0' ? row.strength : null, row.unit].filter(Boolean).join(' · ')}
                   </p>
-                )}
+                ) : null}
                 <p className="text-xs text-muted mt-0.5">
                   Qty: <span className="font-semibold text-primary">{row.quantity || 1}</span>
                 </p>
@@ -246,8 +246,13 @@ function OrderCard({ order, onUpdated }) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <StatusBadge status={order.status} />
+              {order.orderId && (
+                <span className="text-xs font-mono text-muted bg-faint px-1.5 py-0.5 rounded border border-border">
+                  {order.orderId}
+                </span>
+              )}
               <span className="text-xs text-muted">
-                {new Date(order.createdAt).toLocaleDateString('en-US', {
+                {new Date(order.orderDate || order.createdAt).toLocaleDateString('en-US', {
                   day: 'numeric', month: 'short', year: 'numeric',
                 })}
               </span>
@@ -335,8 +340,10 @@ function OrderCard({ order, onUpdated }) {
                     <div key={i} className="flex items-center justify-between gap-3 py-2 border-b border-border last:border-0">
                       <div>
                         <p className="text-sm font-semibold text-primary">{m.name}</p>
-                        {(m.strength || m.unit) && (
-                          <p className="text-xs text-muted">{[m.strength, m.unit].filter(Boolean).join(' · ')}</p>
+                        {((m.strength && m.strength !== '0') || m.unit) && (
+                          <p className="text-xs text-muted">
+                            {[m.strength !== '0' ? m.strength : null, m.unit].filter(Boolean).join(' · ')}
+                          </p>
                         )}
                       </div>
                       <div className="text-right">

@@ -48,16 +48,14 @@ router.put('/:id/price', async (req, res, next) => {
     if (!order) return res.status(404).json({ message: 'Order not found' });
 
     if (Array.isArray(medicines) && medicines.length > 0) {
+      const unitPrice = (m) => Math.max(0, Number(m.unitPrice) || 0);
+      const qty = (m) => Math.max(1, Number(m.quantity) || 1);
       order.medicines = medicines.map((m) => ({
-        medicineId: m.medicineId,
-        name: m.name || '',
-        strength: m.strength || '',
-        unit: m.unit || '',
-        quantity: Number(m.quantity) || 1,
-        unitPrice: Math.max(0, Number(m.unitPrice) || 0),
-        totalPrice: Math.max(0, (Number(m.unitPrice) || 0) * (Number(m.quantity) || 1)),
+        ...m,                                         // preserve id, type, and any other original fields
+        quantity: qty(m),
+        unitPrice: unitPrice(m),
+        totalPrice: unitPrice(m) * qty(m),
       }));
-
       order.totalAmount = order.medicines.reduce((sum, m) => sum + m.totalPrice, 0);
     }
 
