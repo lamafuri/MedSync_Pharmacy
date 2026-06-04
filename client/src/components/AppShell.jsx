@@ -12,6 +12,7 @@ import {
   X,
   ChevronDown,
   Link,
+  ShoppingBag,
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import Modal from './Modal';
@@ -31,6 +32,7 @@ function AppShell() {
     { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/patients', icon: Users, label: 'Patients' },
     { path: '/linked-patients', icon: Link, label: 'Linked Patients' },
+    { path: '/orders', icon: ShoppingBag, label: 'Orders' },
     { path: '/offers', icon: Gift, label: 'Offers' },
     { path: '/analytics', icon: BarChart3, label: 'Analytics', premium: true },
   ];

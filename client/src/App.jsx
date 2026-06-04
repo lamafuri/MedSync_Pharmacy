@@ -9,6 +9,7 @@ import OffersPage from './pages/OffersPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import ProfilePage from './pages/ProfilePage';
 import LinkedPatientsPage from './pages/LinkedPatientsPage';
+import OrdersPage from './pages/OrdersPage';
 
 function App() {
   const { pharmacist } = useAuthStore();
@@ -29,6 +30,7 @@ function App() {
         <Route path="offers" element={<OffersPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="linked-patients" element={<LinkedPatientsPage />} />
+        <Route path="orders" element={<OrdersPage />} />
         <Route path="profile" element={<ProfilePage />} />
       </Route>
     </Routes>
