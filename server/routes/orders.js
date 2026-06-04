@@ -75,6 +75,54 @@ router.put('/:id/price', async (req, res, next) => {
   }
 });
 
+// PUT /api/orders/:id/delivery — pharmacist sets / updates delivery details
+router.put('/:id/delivery', async (req, res, next) => {
+  try {
+    const {
+      partner, partnerLabel, trackingId, riderName, riderPhone,
+      fee, estimatedTime, scheduledAt, deliveryStatus, notes,
+    } = req.body;
+
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    const validPartners = ['pathao', 'yango', 'indrive', 'walk_in', 'others', ''];
+    const validDeliveryStatuses = ['preparing', 'dispatched', 'on_the_way', 'delivered', 'failed', ''];
+
+    const prev = order.delivery || {};
+
+    order.delivery = {
+      partner:       validPartners.includes(partner) ? partner : (prev.partner || ''),
+      partnerLabel:  partnerLabel !== undefined ? partnerLabel : (prev.partnerLabel || ''),
+      trackingId:    trackingId   !== undefined ? trackingId   : (prev.trackingId  || ''),
+      riderName:     riderName    !== undefined ? riderName    : (prev.riderName   || ''),
+      riderPhone:    riderPhone   !== undefined ? riderPhone   : (prev.riderPhone  || ''),
+      fee:           fee          !== undefined ? Math.max(0, Number(fee) || 0) : (prev.fee ?? 0),
+      estimatedTime: estimatedTime !== undefined ? estimatedTime : (prev.estimatedTime || ''),
+      scheduledAt:   scheduledAt  !== undefined ? (scheduledAt ? new Date(scheduledAt) : null) : (prev.scheduledAt || null),
+      status:        validDeliveryStatuses.includes(deliveryStatus) ? deliveryStatus : (prev.status || ''),
+      notes:         notes        !== undefined ? notes        : (prev.notes       || ''),
+      // auto-stamp delivered time
+      deliveredAt: deliveryStatus === 'delivered' && prev.status !== 'delivered'
+        ? new Date()
+        : (prev.deliveredAt || null),
+    };
+
+    // Advance order status to 'confirmed' if delivery is being set up and order is still 'priced'
+    if (order.status === 'priced' && partner && partner !== '') {
+      order.status = 'confirmed';
+    }
+    if (deliveryStatus === 'delivered') {
+      order.status = 'completed';
+    }
+
+    await order.save();
+    res.json({ order });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // PATCH /api/orders/:id/status — update status only
 router.patch('/:id/status', async (req, res, next) => {
   try {

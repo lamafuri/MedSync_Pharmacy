@@ -15,6 +15,39 @@ const orderItemSchema = new Schema(
   { _id: false }
 );
 
+const deliverySchema = new Schema(
+  {
+    // Delivery service
+    partner: {
+      type: String,
+      enum: ['pathao', 'yango', 'indrive', 'walk_in', 'others', ''],
+      default: '',
+    },
+    partnerLabel: { type: String, trim: true }, // custom label when partner = 'others'
+
+    // Rider / logistics
+    trackingId: { type: String, trim: true },
+    riderName: { type: String, trim: true },
+    riderPhone: { type: String, trim: true },
+
+    // Pricing & timing
+    fee: { type: Number, default: 0, min: 0 },
+    estimatedTime: { type: String, trim: true }, // e.g. "20-30 min"
+    scheduledAt: { type: Date },
+    deliveredAt: { type: Date },
+
+    // Status flow: preparing → dispatched → on_the_way → delivered | failed
+    status: {
+      type: String,
+      enum: ['preparing', 'dispatched', 'on_the_way', 'delivered', 'failed', ''],
+      default: '',
+    },
+
+    notes: { type: String, trim: true },
+  },
+  { _id: false }
+);
+
 const orderSchema = new Schema(
   {
     patientId: { type: Schema.Types.ObjectId, ref: 'Patient' },
@@ -30,6 +63,8 @@ const orderSchema = new Schema(
     pharmacistNotes: { type: String, trim: true },
     pricedAt: { type: Date },
 
+    delivery: { type: deliverySchema, default: () => ({}) },
+
     status: {
       type: String,
       enum: ['pending', 'priced', 'confirmed', 'completed', 'cancelled'],
@@ -39,7 +74,6 @@ const orderSchema = new Schema(
   {
     timestamps: true,
     collection: 'orders',
-    // strict: false allows reading any extra fields Website A stores
     strict: false,
   }
 );
