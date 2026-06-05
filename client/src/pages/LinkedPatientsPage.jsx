@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { linkViaOtp, linkViaQr, getLinkedPatients, unlinkPatient } from '../api/pharmacistLinkApi';
+import QrScanner from '../components/QrScanner';
 
 function LinkedPatientsPage() {
   const [linkedPatients, setLinkedPatients] = useState([]);
@@ -9,6 +10,7 @@ function LinkedPatientsPage() {
   const [otp, setOtp] = useState('');
   const [qrToken, setQrToken] = useState('');
   const [linking, setLinking] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   const fetchLinkedPatients = async () => {
     try {
@@ -66,6 +68,21 @@ function LinkedPatientsPage() {
     }
   };
 
+  const handleScanSuccess = async (scannedToken) => {
+    setScannerOpen(false);
+    if (!scannedToken) return;
+    try {
+      setLinking(true);
+      await linkViaQr(scannedToken);
+      toast.success('Successfully linked to patient');
+      fetchLinkedPatients();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to link via QR');
+    } finally {
+      setLinking(false);
+    }
+  };
+
   const handleUnlink = async (linkId) => {
     if (!window.confirm('Are you sure you want to unlink this patient?')) {
       return;
@@ -81,6 +98,7 @@ function LinkedPatientsPage() {
   };
 
   return (
+    <>
     <div className="min-h-screen bg-bg p-6">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-primary mb-6">Linked Patients</h1>
@@ -127,22 +145,43 @@ function LinkedPatientsPage() {
               </button>
             </form>
           ) : (
-            <form onSubmit={handleLinkViaQr} className="flex gap-4">
-              <input
-                type="text"
-                value={qrToken}
-                onChange={(e) => setQrToken(e.target.value)}
-                placeholder="Enter QR token"
-                className="flex-1 px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
-              />
+            <div className="space-y-3">
               <button
-                type="submit"
-                disabled={linking || !qrToken.trim()}
-                className="px-6 py-3 bg-mint text-white rounded-btn font-semibold hover:bg-mint/90 disabled:opacity-50"
+                type="button"
+                onClick={() => setScannerOpen(true)}
+                disabled={linking}
+                className="w-full py-3 bg-navy text-white rounded-btn font-semibold hover:bg-navy/90 disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {linking ? 'Linking...' : 'Link'}
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/>
+                  <path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/>
+                </svg>
+                Scan QR Code with Camera
               </button>
-            </form>
+
+              <div className="flex items-center gap-3 text-muted text-sm">
+                <div className="flex-1 h-px bg-border" />
+                <span>or enter token manually</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+
+              <form onSubmit={handleLinkViaQr} className="flex gap-4">
+                <input
+                  type="text"
+                  value={qrToken}
+                  onChange={(e) => setQrToken(e.target.value)}
+                  placeholder="Paste QR token"
+                  className="flex-1 px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+                />
+                <button
+                  type="submit"
+                  disabled={linking || !qrToken.trim()}
+                  className="px-6 py-3 bg-mint text-white rounded-btn font-semibold hover:bg-mint/90 disabled:opacity-50"
+                >
+                  {linking ? 'Linking...' : 'Link'}
+                </button>
+              </form>
+            </div>
           )}
         </div>
 
@@ -226,6 +265,14 @@ function LinkedPatientsPage() {
         </div>
       </div>
     </div>
+
+    {scannerOpen && (
+      <QrScanner
+        onScan={handleScanSuccess}
+        onClose={() => setScannerOpen(false)}
+      />
+    )}
+    </>
   );
 }
 
