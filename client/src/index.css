@@ -1,19 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-primary:        #0D1B2A;
+  --color-primary-soft:   #1A2B3C;
+  --color-accent:         #00A878;
+  --color-accent-light:   #E6F7F3;
+  --color-bg:             #F0F2F5;
+  --color-surface:        #FFFFFF;
+  --color-surface-alt:    #F8F9FA;
+  --color-success:        #00A878;
+  --color-warning:        #F59E0B;
+  --color-danger:         #EF4444;
+  --color-danger-bg:      #FEF2F2;
+  --color-text-primary:   #0D1B2A;
+  --color-text-secondary: #6B7280;
+  --color-text-muted:     #9CA3AF;
+  --color-text-inverse:   #FFFFFF;
+  --color-border:         #E5E7EB;
+  --color-border-focus:   #00A878;
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   20px;
+  --radius-full: 9999px;
+}
+
 @layer base {
   body {
     @apply bg-bg font-body text-primary;
+    -webkit-font-smoothing: antialiased;
   }
 }
 
 @layer utilities {
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 }

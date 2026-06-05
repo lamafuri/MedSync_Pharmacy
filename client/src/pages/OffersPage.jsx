@@ -42,7 +42,7 @@ function OffersPage() {
   };
 
   const statusColors = {
-    draft: 'bg-gray-100 text-gray-600',
+    draft: 'bg-faint text-muted',
     sent: 'bg-mint-light text-mint',
     accepted: 'bg-green-light text-green',
     declined: 'bg-red-light text-red',
@@ -66,7 +66,7 @@ function OffersPage() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-3 bg-card border border-border rounded-btn focus:outline-none focus:border-mint"
+            className="px-4 py-3 bg-card border border-border rounded-xl focus:outline-none focus:border-mint"
           >
             <option value="all">All Status</option>
             <option value="draft">Draft</option>
@@ -85,7 +85,7 @@ function OffersPage() {
       </div>
 
       {/* Desktop Table */}
-      <div className="hidden lg:block bg-card rounded-card border border-border shadow-card overflow-hidden">
+      <div className="hidden lg:block bg-card rounded-card border border-border overflow-hidden">
         <table className="w-full">
           <thead className="bg-faint">
             <tr className="text-left text-muted text-sm">
@@ -147,7 +147,7 @@ function OffersPage() {
       {/* Mobile Cards */}
       <div className="lg:hidden space-y-4">
         {offers.length === 0 ? (
-          <div className="bg-card rounded-card border border-border shadow-card p-12 text-center">
+          <div className="bg-card rounded-card border border-border p-12 text-center">
             <div className="w-16 h-16 bg-faint rounded-full flex items-center justify-center mx-auto mb-4">
               <Send className="w-8 h-8 text-muted" />
             </div>
@@ -184,7 +184,7 @@ function OffersPage() {
 
 function OfferCard({ offer, onDelete }) {
   const statusColors = {
-    draft: 'bg-gray-100 text-gray-600',
+    draft: 'bg-faint text-muted',
     sent: 'bg-mint-light text-mint',
     accepted: 'bg-green-light text-green',
     declined: 'bg-red-light text-red',
@@ -192,7 +192,7 @@ function OfferCard({ offer, onDelete }) {
   };
 
   return (
-    <div className="bg-card rounded-card border border-border shadow-card p-6">
+    <div className="bg-card rounded-card border border-border p-6">
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="font-semibold text-primary">{offer.patientId?.name || 'Unknown Patient'}</h3>
@@ -368,7 +368,7 @@ function OfferComposer({ isOpen, onClose, onSuccess }) {
           <select
             value={selectedPatientId}
             onChange={(e) => setSelectedPatientId(e.target.value)}
-            className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+            className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
             required
           >
             <option value="">Select a patient</option>
@@ -387,7 +387,7 @@ function OfferComposer({ isOpen, onClose, onSuccess }) {
             value={medicineName}
             onChange={(e) => setMedicineName(e.target.value)}
             placeholder="e.g., Metformin 500mg"
-            className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+            className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
             required
           />
           {selectedPatient && selectedPatient.medicines?.length > 0 && (
@@ -445,7 +445,7 @@ function OfferComposer({ isOpen, onClose, onSuccess }) {
             onChange={(e) => setPatientPreferences(e.target.value)}
             rows={2}
             placeholder="e.g. elderly patient, budget-conscious, prefers Nepali language"
-            className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint resize-none"
+            className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint resize-none"
           />
         </div>
 
@@ -456,7 +456,7 @@ function OfferComposer({ isOpen, onClose, onSuccess }) {
             value={additionalNotes}
             onChange={(e) => setAdditionalNotes(e.target.value)}
             placeholder="e.g. repeat customer, diabetic patient"
-            className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+            className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
           />
         </div>
 
@@ -471,7 +471,7 @@ function OfferComposer({ isOpen, onClose, onSuccess }) {
               value={emailSubject}
               onChange={(e) => setEmailSubject(e.target.value)}
               placeholder="Email subject..."
-              className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
             />
           </div>
 
@@ -482,7 +482,7 @@ function OfferComposer({ isOpen, onClose, onSuccess }) {
               onChange={(e) => setEmailBody(e.target.value)}
               rows={4}
               placeholder="Email body content..."
-              className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint resize-none"
+              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint resize-none"
             />
           </div>
 
@@ -514,7 +514,7 @@ function OfferComposer({ isOpen, onClose, onSuccess }) {
               rows={2}
               maxLength={300}
               placeholder="WhatsApp message..."
-              className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint resize-none"
+              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint resize-none"
             />
             <p className="text-xs text-muted mt-1">{whatsappMessage.length}/300</p>
           </div>
@@ -522,11 +522,11 @@ function OfferComposer({ isOpen, onClose, onSuccess }) {
           <button
             type="button"
             disabled={true}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-400 rounded-btn text-sm font-semibold cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 bg-faint text-muted rounded-btn text-sm font-semibold cursor-not-allowed"
             title="WhatsApp direct messaging coming soon"
           >
             ✨ Generate WhatsApp Message
-            <span className="bg-gray-300 text-gray-600 text-xs px-2 py-0.5 rounded-full">Coming Soon</span>
+            <span className="bg-border text-muted text-xs px-2 py-0.5 rounded-full">Coming Soon</span>
           </button>
         </div>
 
@@ -579,7 +579,7 @@ function OfferComposer({ isOpen, onClose, onSuccess }) {
             type="date"
             value={expiresAt}
             onChange={(e) => setExpiresAt(e.target.value)}
-            className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+            className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
           />
         </div>
 

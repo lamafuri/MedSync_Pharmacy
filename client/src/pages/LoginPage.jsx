@@ -183,7 +183,7 @@ function LoginPage() {
   if (showOTP) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg p-4">
-        <div className="w-full max-w-md bg-card rounded-card shadow-modal p-8">
+        <div className="w-full max-w-md bg-card rounded-card border border-border p-8">
           <button
             onClick={() => {
               setShowOTP(false);
@@ -270,7 +270,7 @@ function LoginPage() {
   if (showForgotPassword) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg p-4">
-        <div className="w-full max-w-md bg-card rounded-card shadow-modal p-8">
+        <div className="w-full max-w-md bg-card rounded-card border border-border p-8">
           <button
             onClick={() => {
               setShowForgotPassword(false);
@@ -293,7 +293,7 @@ function LoginPage() {
                     {...forgotPasswordForm.register('email')}
                     type="email"
                     placeholder="Email"
-                    className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+                    className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
                   />
                   {forgotPasswordForm.formState.errors.email && (
                     <p className="text-red text-sm mt-1">{forgotPasswordForm.formState.errors.email.message}</p>
@@ -368,7 +368,7 @@ function LoginPage() {
                     {...resetPasswordForm.register('newPassword')}
                     type="password"
                     placeholder="New Password"
-                    className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+                    className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
                   />
                   {resetPasswordForm.formState.errors.newPassword && (
                     <p className="text-red text-sm mt-1">{resetPasswordForm.formState.errors.newPassword.message}</p>
@@ -406,12 +406,14 @@ function LoginPage() {
             Connect with patients. Grow your pharmacy.
           </h1>
           
-          <div className="space-y-3">
+          <div className="flex flex-wrap gap-2 mt-2">
             {['Real-time alerts', 'AI offers', 'Patient notifications', 'Analytics'].map((feature) => (
-              <div key={feature} className="flex items-center gap-3 text-white/80">
-                <div className="w-2 h-2 bg-mint rounded-full" />
-                <span>{feature}</span>
-              </div>
+              <span
+                key={feature}
+                className="px-3 py-1.5 rounded-full border border-white/20 text-white text-xs font-medium"
+              >
+                {feature}
+              </span>
             ))}
           </div>
         </div>
@@ -427,12 +429,12 @@ function LoginPage() {
             <span className="text-mint font-semibold text-lg">PHARMACIST PORTAL</span>
           </div>
 
-          <div className="bg-card rounded-card shadow-card p-8">
+          <div className="bg-card rounded-card border border-border p-8">
             {/* Tab Switcher */}
-            <div className="flex mb-8 bg-faint rounded-btn p-1">
+            <div className="flex mb-8 bg-faint rounded-xl p-1">
               <button
                 onClick={() => setTab('signin')}
-                className={`flex-1 py-2 rounded-btn font-semibold transition-colors ${
+                className={`flex-1 py-2 rounded-xl font-semibold transition-colors ${
                   tab === 'signin' ? 'bg-white text-primary shadow-sm' : 'text-muted'
                 }`}
               >
@@ -440,7 +442,7 @@ function LoginPage() {
               </button>
               <button
                 onClick={() => setTab('register')}
-                className={`flex-1 py-2 rounded-btn font-semibold transition-colors ${
+                className={`flex-1 py-2 rounded-xl font-semibold transition-colors ${
                   tab === 'register' ? 'bg-white text-primary shadow-sm' : 'text-muted'
                 }`}
               >
@@ -455,7 +457,7 @@ function LoginPage() {
                     {...loginForm.register('email')}
                     type="email"
                     placeholder="Email"
-                    className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+                    className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
                   />
                   {loginForm.formState.errors.email && (
                     <p className="text-red text-sm mt-1">{loginForm.formState.errors.email.message}</p>
@@ -467,7 +469,7 @@ function LoginPage() {
                     {...loginForm.register('password')}
                     type="password"
                     placeholder="Password"
-                    className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+                    className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
                   />
                   {loginForm.formState.errors.password && (
                     <p className="text-red text-sm mt-1">{loginForm.formState.errors.password.message}</p>
@@ -498,7 +500,7 @@ function LoginPage() {
                       {...registerForm.register('name')}
                       type="text"
                       placeholder="Full Name"
-                      className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+                      className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
                     />
                     {registerForm.formState.errors.name && (
                       <p className="text-red text-sm mt-1">{registerForm.formState.errors.name.message}</p>
@@ -510,7 +512,7 @@ function LoginPage() {
                       {...registerForm.register('phone')}
                       type="tel"
                       placeholder="Phone"
-                      className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+                      className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
                     />
                     {registerForm.formState.errors.phone && (
                       <p className="text-red text-sm mt-1">{registerForm.formState.errors.phone.message}</p>
@@ -523,7 +525,7 @@ function LoginPage() {
                     {...registerForm.register('email')}
                     type="email"
                     placeholder="Email"
-                    className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+                    className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
                   />
                   {registerForm.formState.errors.email && (
                     <p className="text-red text-sm mt-1">{registerForm.formState.errors.email.message}</p>
@@ -535,7 +537,7 @@ function LoginPage() {
                     {...registerForm.register('password')}
                     type="password"
                     placeholder="Password"
-                    className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+                    className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
                   />
                   {registerForm.formState.errors.password && (
                     <p className="text-red text-sm mt-1">{registerForm.formState.errors.password.message}</p>
@@ -547,7 +549,7 @@ function LoginPage() {
                     {...registerForm.register('pharmacyName')}
                     type="text"
                     placeholder="Pharmacy Name"
-                    className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+                    className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
                   />
                   {registerForm.formState.errors.pharmacyName && (
                     <p className="text-red text-sm mt-1">{registerForm.formState.errors.pharmacyName.message}</p>
@@ -559,7 +561,7 @@ function LoginPage() {
                     {...registerForm.register('pharmacyAddress')}
                     type="text"
                     placeholder="Pharmacy Address"
-                    className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+                    className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
                   />
                   {registerForm.formState.errors.pharmacyAddress && (
                     <p className="text-red text-sm mt-1">{registerForm.formState.errors.pharmacyAddress.message}</p>
@@ -571,7 +573,7 @@ function LoginPage() {
                     {...registerForm.register('licenseNumber')}
                     type="text"
                     placeholder="License Number"
-                    className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+                    className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
                   />
                   {registerForm.formState.errors.licenseNumber && (
                     <p className="text-red text-sm mt-1">{registerForm.formState.errors.licenseNumber.message}</p>

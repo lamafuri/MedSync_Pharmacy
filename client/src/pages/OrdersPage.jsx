@@ -527,7 +527,7 @@ function OrderCard({ order, onUpdated }) {
   };
 
   return (
-    <div className="bg-white rounded-card border border-border shadow-card transition-shadow hover:shadow-md">
+    <div className="bg-white rounded-card border border-border transition-shadow hover:shadow-md">
       {/* Header */}
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">

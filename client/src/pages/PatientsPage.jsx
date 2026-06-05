@@ -164,7 +164,7 @@ function PatientsPage() {
             placeholder="Search name, email, phone..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-card border border-border rounded-btn focus:outline-none focus:border-mint"
+            className="w-full pl-12 pr-4 py-3 bg-card border border-border rounded-xl focus:outline-none focus:border-mint"
           />
         </div>
         <div className="relative flex-1 md:w-48 md:flex-none">
@@ -174,7 +174,7 @@ function PatientsPage() {
             placeholder="Filter Location..."
             value={locationFilter}
             onChange={(e) => setLocationFilter(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-card border border-border rounded-btn focus:outline-none focus:border-mint"
+            className="w-full pl-12 pr-4 py-3 bg-card border border-border rounded-xl focus:outline-none focus:border-mint"
           />
         </div>
         <div className="relative flex-1 md:w-48 md:flex-none">
@@ -184,7 +184,7 @@ function PatientsPage() {
             placeholder="Filter Medicine..."
             value={medicineFilter}
             onChange={(e) => setMedicineFilter(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-card border border-border rounded-btn focus:outline-none focus:border-mint"
+            className="w-full pl-12 pr-4 py-3 bg-card border border-border rounded-xl focus:outline-none focus:border-mint"
           />
         </div>
         <button
@@ -224,7 +224,7 @@ function PatientsPage() {
 
       {/* Empty State */}
       {filteredPatients.length === 0 && !loading && (
-        <div className="bg-card rounded-card border border-border shadow-card p-12 text-center">
+        <div className="bg-card rounded-card border border-border p-12 text-center">
           <div className="w-20 h-20 bg-faint rounded-full flex items-center justify-center mx-auto mb-4">
             <Link2 className="w-10 h-10 text-muted" />
           </div>
@@ -248,7 +248,7 @@ function PatientsPage() {
             return acc;
           }, {})
         ).map(([userId, group]) => (
-          <div key={userId} className="bg-card rounded-card border border-border shadow-card overflow-hidden">
+          <div key={userId} className="bg-card rounded-card border border-border overflow-hidden">
             <button
               onClick={() => toggleGroup(userId)}
               className="w-full flex items-center justify-between p-4 hover:bg-faint transition-colors"
@@ -298,7 +298,7 @@ function PatientsPage() {
               value={bulkEmailForm.subject}
               onChange={(e) => setBulkEmailForm({ ...bulkEmailForm, subject: e.target.value })}
               placeholder="Email subject"
-              className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
               required
             />
           </div>
@@ -308,7 +308,7 @@ function PatientsPage() {
               value={bulkEmailForm.message}
               onChange={(e) => setBulkEmailForm({ ...bulkEmailForm, message: e.target.value })}
               placeholder="Type your message here..."
-              className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint h-32 resize-none"
+              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint h-32 resize-none"
               required
             />
           </div>
@@ -341,7 +341,7 @@ function PatientsPage() {
               value={linkForm.qrToken}
               onChange={(e) => setLinkForm({ ...linkForm, qrToken: e.target.value })}
               placeholder="Enter patient's QR token or 8-digit OTP"
-              className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
               required
             />
           </div>
@@ -352,7 +352,7 @@ function PatientsPage() {
               value={linkForm.patientEmail}
               onChange={(e) => setLinkForm({ ...linkForm, patientEmail: e.target.value })}
               placeholder="Patient's email"
-              className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
             />
           </div>
           <div>
@@ -362,7 +362,7 @@ function PatientsPage() {
               value={linkForm.patientPhone}
               onChange={(e) => setLinkForm({ ...linkForm, patientPhone: e.target.value })}
               placeholder="Patient's phone"
-              className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
             />
           </div>
           <div>
@@ -372,7 +372,7 @@ function PatientsPage() {
               value={linkForm.patientAddress}
               onChange={(e) => setLinkForm({ ...linkForm, patientAddress: e.target.value })}
               placeholder="Patient's address"
-              className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
             />
           </div>
           <div className="flex gap-3 pt-4">
@@ -403,7 +403,7 @@ function PatientsPage() {
               value={contactForm.patientEmail}
               onChange={(e) => setContactForm({ ...contactForm, patientEmail: e.target.value })}
               placeholder="Patient's email"
-              className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
             />
           </div>
           <div>
@@ -413,7 +413,7 @@ function PatientsPage() {
               value={contactForm.patientPhone}
               onChange={(e) => setContactForm({ ...contactForm, patientPhone: e.target.value })}
               placeholder="Patient's phone"
-              className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
             />
           </div>
           <div>
@@ -423,7 +423,7 @@ function PatientsPage() {
               value={contactForm.patientAddress}
               onChange={(e) => setContactForm({ ...contactForm, patientAddress: e.target.value })}
               placeholder="Patient's address"
-              className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
             />
           </div>
           <div className="flex gap-3 pt-4">
@@ -472,7 +472,7 @@ function PatientCard({ patient, onUnlink, onEditContact, onSendOffer, isSelected
   };
 
   return (
-    <div className={`bg-card rounded-card border ${isSelected ? 'border-mint ring-1 ring-mint' : 'border-border'} shadow-card p-6 transition-all`}>
+    <div className={`bg-card rounded-card border ${isSelected ? 'border-mint ring-1 ring-mint' : 'border-border'} p-6 transition-all`}>
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <input 
@@ -699,7 +699,7 @@ function OfferComposer({ isOpen, onClose, patient, medicine, onSuccess }) {
             rows={4}
             maxLength={500}
             placeholder="Write your offer message..."
-            className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint resize-none"
+            className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint resize-none"
           />
           <p className="text-xs text-muted mt-1">{message.length}/500</p>
         </div>
@@ -746,7 +746,7 @@ function OfferComposer({ isOpen, onClose, patient, medicine, onSuccess }) {
             type="date"
             value={expiresAt}
             onChange={(e) => setExpiresAt(e.target.value)}
-            className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+            className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
           />
         </div>
 

@@ -95,7 +95,7 @@ function ProfilePage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Pharmacy Info Card */}
-      <div className="bg-card rounded-card border border-border shadow-card p-6">
+      <div className="bg-card rounded-card border border-border p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-primary">Pharmacy Information</h2>
           <button
@@ -115,7 +115,7 @@ function ProfilePage() {
                 type="text"
                 value={profileForm.name}
                 onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-                className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+                className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
               />
             </div>
             <div>
@@ -124,7 +124,7 @@ function ProfilePage() {
                 type="text"
                 value={profileForm.pharmacyName}
                 onChange={(e) => setProfileForm({ ...profileForm, pharmacyName: e.target.value })}
-                className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+                className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
               />
             </div>
             <div>
@@ -133,7 +133,7 @@ function ProfilePage() {
                 type="text"
                 value={profileForm.pharmacyAddress}
                 onChange={(e) => setProfileForm({ ...profileForm, pharmacyAddress: e.target.value })}
-                className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+                className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
               />
             </div>
             <div>
@@ -142,7 +142,7 @@ function ProfilePage() {
                 type="tel"
                 value={profileForm.phone}
                 onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
-                className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+                className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
               />
             </div>
             <div className="flex gap-3 pt-4">
@@ -193,7 +193,7 @@ function ProfilePage() {
       </div>
 
       {/* Security Card */}
-      <div className="bg-card rounded-card border border-border shadow-card p-6">
+      <div className="bg-card rounded-card border border-border p-6">
         <h2 className="text-xl font-semibold text-primary mb-6">Security</h2>
         <button
           onClick={() => setShowPasswordModal(true)}
@@ -205,7 +205,7 @@ function ProfilePage() {
       </div>
 
       {/* Subscription Card */}
-      <div className="bg-card rounded-card border border-border shadow-card p-6">
+      <div className="bg-card rounded-card border border-border p-6">
         {pharmacist.isPremium ? (
           <div>
             <div className="flex items-center gap-3 mb-6">
@@ -300,7 +300,7 @@ function ProfilePage() {
 
             <button
               onClick={() => setShowUpgradeModal(true)}
-              className="w-full py-4 bg-gradient-to-r from-amber to-amber-light text-white rounded-btn font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+              className="w-full py-4 bg-amber text-white rounded-btn font-semibold hover:bg-amber/90 transition-colors flex items-center justify-center gap-2"
             >
               <Sparkles className="w-5 h-5" />
               Upgrade to Premium
@@ -318,7 +318,7 @@ function ProfilePage() {
               type="password"
               value={passwordForm.currentPassword}
               onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-              className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
               required
             />
           </div>
@@ -328,7 +328,7 @@ function ProfilePage() {
               type="password"
               value={passwordForm.newPassword}
               onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-              className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
               required
               minLength={6}
             />
@@ -339,7 +339,7 @@ function ProfilePage() {
               type="password"
               value={passwordForm.confirmPassword}
               onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-              className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
               required
               minLength={6}
             />
@@ -391,7 +391,7 @@ function UpgradeModal({ isOpen, onClose, onUpgrade }) {
           <p className="text-muted">Unlock all features with a one-time payment</p>
         </div>
 
-        <div className="bg-gradient-to-r from-amber to-amber-light rounded-lg p-4 text-white">
+        <div className="bg-amber rounded-lg p-4 text-white">
           <div className="flex justify-between items-center mb-2">
             <span className="font-semibold">Premium Plan</span>
             <span className="text-2xl font-bold">NPR 999</span>

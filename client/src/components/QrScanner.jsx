@@ -35,7 +35,7 @@ function QrScanner({ onScan, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="bg-card rounded-card shadow-card w-full max-w-sm">
+      <div className="bg-card rounded-card w-full max-w-sm">
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h3 className="text-lg font-semibold text-primary">Scan Patient QR Code</h3>
           <button

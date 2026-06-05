@@ -31,7 +31,7 @@ function AnalyticsPage() {
 
   if (!pharmacist?.isPremium) {
     return (
-      <div className="bg-card rounded-card border border-border shadow-card p-12 text-center relative overflow-hidden">
+      <div className="bg-card rounded-card border border-border p-12 text-center relative overflow-hidden">
         <div className="relative z-10">
           <div className="w-20 h-20 bg-amber-light rounded-full flex items-center justify-center mx-auto mb-4">
             <Crown className="w-10 h-10 text-amber" />
@@ -53,7 +53,7 @@ function AnalyticsPage() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map(i => (
-          <div key={i} className="bg-card rounded-card border border-border shadow-card p-6 animate-pulse">
+          <div key={i} className="bg-card rounded-card border border-border p-6 animate-pulse">
             <div className="w-12 h-12 bg-faint rounded-xl mb-4" />
             <div className="h-8 bg-faint rounded mb-2" />
             <div className="h-4 bg-faint rounded w-2/3" />
@@ -63,7 +63,7 @@ function AnalyticsPage() {
     );
   }
 
-  const COLORS = ['#0f6e56', '#1a2540', '#ef9f27', '#e24b4a', '#1d9e75'];
+  const COLORS = ['#00A878', '#0D1B2A', '#F59E0B', '#EF4444', '#009B6D'];
 
   const offerTypeData = Object.entries(analytics?.offersByType || {}).map(([type, count]) => ({
     name: type,
@@ -104,38 +104,38 @@ function AnalyticsPage() {
         {/* Charts Row 1 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Line Chart - Offers Sent */}
-          <div className="bg-card rounded-card border border-border shadow-card p-6">
+          <div className="bg-card rounded-card border border-border p-6">
             <h3 className="text-lg font-semibold text-primary mb-4">Offers Sent (Last 30 Days)</h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={analytics?.patientEngagement || []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#dce3ef" />
-                <XAxis dataKey="date" stroke="#7c8fa6" />
-                <YAxis stroke="#7c8fa6" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <XAxis dataKey="date" stroke="#6B7280" />
+                <YAxis stroke="#6B7280" />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1a2540',
+                    backgroundColor: '#0D1B2A',
                     border: 'none',
                     borderRadius: '10px',
                     color: '#fff',
                   }}
                 />
                 <Legend />
-                <Line type="monotone" dataKey="count" stroke="#0f6e56" strokeWidth={2} dot={{ fill: '#0f6e56' }} />
+                <Line type="monotone" dataKey="count" stroke="#00A878" strokeWidth={2} dot={{ fill: '#00A878' }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
 
           {/* Bar Chart - Top Medicines */}
-          <div className="bg-card rounded-card border border-border shadow-card p-6">
+          <div className="bg-card rounded-card border border-border p-6">
             <h3 className="text-lg font-semibold text-primary mb-4">Top Medicines Needing Refill</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={analytics?.topMedicines || []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#dce3ef" />
-                <XAxis dataKey="name" stroke="#7c8fa6" />
-                <YAxis stroke="#7c8fa6" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <XAxis dataKey="name" stroke="#6B7280" />
+                <YAxis stroke="#6B7280" />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1a2540',
+                    backgroundColor: '#0D1B2A',
                     border: 'none',
                     borderRadius: '10px',
                     color: '#fff',
@@ -145,8 +145,8 @@ function AnalyticsPage() {
                 <Bar dataKey="count" fill="url(#gradient)" radius={[8, 8, 0, 0]} />
                 <defs>
                   <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#1a2540" />
-                    <stop offset="100%" stopColor="#0f6e56" />
+                    <stop offset="0%" stopColor="#0D1B2A" />
+                    <stop offset="100%" stopColor="#00A878" />
                   </linearGradient>
                 </defs>
               </BarChart>
@@ -157,7 +157,7 @@ function AnalyticsPage() {
         {/* Charts Row 2 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Pie Chart - Offer Type Distribution */}
-          <div className="bg-card rounded-card border border-border shadow-card p-6">
+          <div className="bg-card rounded-card border border-border p-6">
             <h3 className="text-lg font-semibold text-primary mb-4">Offer Type Distribution</h3>
             <ResponsiveContainer width="100%" height={300}>
               <RechartsPieChart>
@@ -177,7 +177,7 @@ function AnalyticsPage() {
                 </Pie>
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1a2540',
+                    backgroundColor: '#0D1B2A',
                     border: 'none',
                     borderRadius: '10px',
                     color: '#fff',
@@ -189,23 +189,23 @@ function AnalyticsPage() {
           </div>
 
           {/* Bar Chart - Patient Engagement */}
-          <div className="bg-card rounded-card border border-border shadow-card p-6">
+          <div className="bg-card rounded-card border border-border p-6">
             <h3 className="text-lg font-semibold text-primary mb-4">Patient Engagement</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={analytics?.patientEngagement || []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#dce3ef" />
-                <XAxis dataKey="date" stroke="#7c8fa6" />
-                <YAxis stroke="#7c8fa6" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <XAxis dataKey="date" stroke="#6B7280" />
+                <YAxis stroke="#6B7280" />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1a2540',
+                    backgroundColor: '#0D1B2A',
                     border: 'none',
                     borderRadius: '10px',
                     color: '#fff',
                   }}
                 />
                 <Legend />
-                <Bar dataKey="count" fill="#0f6e56" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="count" fill="#00A878" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -224,7 +224,7 @@ function KPICard({ icon: Icon, label, value, color }) {
   };
 
   return (
-    <div className="bg-card rounded-card border border-border shadow-card p-6">
+    <div className="bg-card rounded-card border border-border p-6">
       <div className={`w-12 h-12 ${colors[color]} rounded-xl flex items-center justify-center mb-4`}>
         <Icon className="w-6 h-6" strokeWidth={1.5} />
       </div>

@@ -115,7 +115,7 @@ function DashboardPage() {
       {/* Patient Alert List */}
       <div className="space-y-4">
         {filteredPatients.length === 0 ? (
-          <div className="bg-card rounded-card border border-border shadow-card p-8 text-center">
+          <div className="bg-card rounded-card border border-border p-8 text-center">
             <p className="text-muted">No patients found. Link your first patient to get started.</p>
           </div>
         ) : (
@@ -154,14 +154,14 @@ function DashboardPage() {
 
 function StatCard({ icon: Icon, label, value, color }) {
   const colors = {
-    blue: 'bg-blue-light text-blue-600',
+    blue: 'bg-mint-light text-mint',
     red: 'bg-red-light text-red',
     mint: 'bg-mint-light text-mint',
     amber: 'bg-amber-light text-amber',
   };
 
   return (
-    <div className="bg-card rounded-card border border-border shadow-card p-6">
+    <div className="bg-card rounded-card border border-border p-6">
       <div className={`w-12 h-12 ${colors[color]} rounded-xl flex items-center justify-center mb-4`}>
         <Icon className="w-6 h-6" strokeWidth={1.5} />
       </div>
@@ -192,7 +192,7 @@ function PatientCard({ patient, isExpanded, onToggle, onSendOffer }) {
   };
 
   return (
-    <div className="bg-card rounded-card border border-border shadow-card overflow-hidden">
+    <div className="bg-card rounded-card border border-border overflow-hidden">
       <div className="p-6">
         <div className="flex items-start gap-4">
           <div className="w-11 h-11 bg-navy rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
@@ -404,7 +404,7 @@ function OfferComposer({ isOpen, onClose, patient, medicine, onSuccess }) {
             rows={4}
             maxLength={500}
             placeholder="Write your offer message..."
-            className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint resize-none"
+            className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint resize-none"
           />
           <p className="text-xs text-muted mt-1">{message.length}/500</p>
         </div>
@@ -451,7 +451,7 @@ function OfferComposer({ isOpen, onClose, patient, medicine, onSuccess }) {
             type="date"
             value={expiresAt}
             onChange={(e) => setExpiresAt(e.target.value)}
-            className="w-full px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+            className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
           />
         </div>
 

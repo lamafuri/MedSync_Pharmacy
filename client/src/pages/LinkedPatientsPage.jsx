@@ -104,7 +104,7 @@ function LinkedPatientsPage() {
         <h1 className="text-3xl font-bold text-primary mb-6">Linked Patients</h1>
 
         {/* Link New Patient Section */}
-        <div className="bg-card rounded-card shadow-card p-6 mb-6">
+        <div className="bg-card rounded-card p-6 mb-6">
           <h2 className="text-xl font-semibold text-primary mb-4">Link New Patient</h2>
           
           <div className="flex gap-4 mb-4">
@@ -134,7 +134,7 @@ function LinkedPatientsPage() {
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 8))}
                 placeholder="Enter 8-digit OTP"
                 maxLength={8}
-                className="flex-1 px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+                className="flex-1 px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
               />
               <button
                 type="submit"
@@ -171,7 +171,7 @@ function LinkedPatientsPage() {
                   value={qrToken}
                   onChange={(e) => setQrToken(e.target.value)}
                   placeholder="Paste QR token"
-                  className="flex-1 px-4 py-3 border border-border rounded-btn focus:outline-none focus:border-mint"
+                  className="flex-1 px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
                 />
                 <button
                   type="submit"
@@ -186,7 +186,7 @@ function LinkedPatientsPage() {
         </div>
 
         {/* Linked Patients List */}
-        <div className="bg-card rounded-card shadow-card p-6">
+        <div className="bg-card rounded-card p-6">
           <h2 className="text-xl font-semibold text-primary mb-4">Your Linked Patients</h2>
           
           {loading ? (

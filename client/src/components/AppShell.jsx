@@ -105,10 +105,10 @@ function AppShell() {
                 key={item.path}
                 onClick={() => !isPremiumLocked && navigate(item.path)}
                 disabled={isPremiumLocked}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-btn transition-colors ${
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors border-l-[3px] ${
                   isActive
-                    ? 'bg-mint-light text-mint font-semibold'
-                    : 'text-muted hover:bg-faint'
+                    ? 'bg-mint-light text-mint font-semibold border-l-mint'
+                    : 'text-muted hover:bg-faint border-l-transparent'
                 } ${isPremiumLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <Icon className="w-5 h-5" strokeWidth={1.5} />
@@ -125,7 +125,7 @@ function AppShell() {
               <div className="border-t border-border my-4" />
               <button
                 onClick={() => navigate('/profile')}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-btn bg-amber-light text-amber font-semibold hover:bg-amber/20 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-btn bg-amber text-white font-semibold hover:bg-amber/90 transition-colors"
               >
                 <Crown className="w-5 h-5" strokeWidth={1.5} />
                 <span>Upgrade to Premium</span>
@@ -275,7 +275,7 @@ function AppShell() {
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className={`flex flex-col items-center gap-1 p-2 rounded-btn transition-colors ${
+              className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${
                 isActive ? 'text-mint' : 'text-muted'
               }`}
             >
