@@ -84,9 +84,7 @@ function AppShell() {
       <aside className="hidden lg:flex lg:w-64 flex-col bg-white border-r border-border fixed h-full">
         <div className="p-6 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-mint rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">M</span>
-            </div>
+            <img src="/favicon.png" alt="MedSync" className="w-10 h-10 rounded-lg object-contain" />
             <div>
               <span className="font-semibold text-primary">MedSync</span>
               <p className="text-xs text-muted">Pharmacist Portal</p>

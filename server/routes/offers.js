@@ -2,6 +2,7 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import PatientLink from '../models/PatientLink.js';
 import Patient from '../models/shared/Patient.js';
+import User from '../models/shared/User.js';
 import Offer from '../models/Offer.js';
 import Notification from '../models/Notification.js';
 import { sendOfferEmail } from '../utils/sendEmail.js';
@@ -24,7 +25,7 @@ router.post('/', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { patientId, medicineName, offerType, discountPercent, title, description, fullMessage, shortMessage, channels, expiresAt } = req.body;
+    const { patientId, medicineName, offerType, discountPercent, title, description, fullMessage, shortMessage, emailSubject, channels, expiresAt } = req.body;
     const pharmacistId = req.pharmacist._id;
 
     // Premium gate for email sending
@@ -70,14 +71,22 @@ router.post('/', [
       status: 'draft',
     });
 
+    // Resolve patient email: prefer patientLink override, fall back to User record
+    let resolvedPatientEmail = patientLink.patientEmail || null;
+    if (!resolvedPatientEmail && patient.userId) {
+      const user = await User.findById(patient.userId).select('email');
+      resolvedPatientEmail = user?.email || null;
+    }
+
     // Send through each channel
     for (const channel of filteredChannels) {
-      if (channel === 'email' && patientLink.patientEmail) {
+      if (channel === 'email' && resolvedPatientEmail) {
         await sendOfferEmail({
-          to: patientLink.patientEmail,
+          to: resolvedPatientEmail,
           patientName: patient.name,
           pharmacyName: req.pharmacist.pharmacyName,
           offerTitle: title,
+          emailSubject: emailSubject || null,
           offerMessage: fullMessage,
           medicineName,
           expiresAt: expiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),

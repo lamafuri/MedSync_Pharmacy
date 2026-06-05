@@ -283,6 +283,7 @@ function OfferComposer({ isOpen, onClose, onSuccess }) {
         title: `${offerType === 'discount' ? `${discount}% Off` : offerType} - ${medicineName || 'Special Offer'}`,
         fullMessage: emailBody || message,
         shortMessage: whatsappMessage || message.substring(0, 100),
+        emailSubject: emailSubject || '',
         channels,
         expiresAt: expiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       });

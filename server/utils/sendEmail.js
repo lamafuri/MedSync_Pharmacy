@@ -79,11 +79,11 @@ export const sendResetOTPEmail = async (email, otp) => {
   });
 };
 
-export const sendOfferEmail = async ({ to, patientName, pharmacyName, offerTitle, offerMessage, medicineName, expiresAt }) => {
+export const sendOfferEmail = async ({ to, patientName, pharmacyName, offerTitle, emailSubject, offerMessage, medicineName, expiresAt }) => {
   await sendMail({
     from: process.env.SMTP_FROM || process.env.SMTP_USER,
     to,
-    subject: `Special Offer from ${pharmacyName} - ${offerTitle}`,
+    subject: emailSubject || `Special Offer from ${pharmacyName} - ${offerTitle}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background: linear-gradient(135deg, #1a2540 0%, #0f6e56 100%); padding: 30px; border-radius: 20px 20px 0 0;">

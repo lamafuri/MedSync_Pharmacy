@@ -396,9 +396,7 @@ function LoginPage() {
       <div className="hidden lg:flex lg:w-1/2 bg-navy flex-col justify-center p-16">
         <div className="max-w-md">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-mint rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">M</span>
-            </div>
+            <img src="/favicon.png" alt="MedSync" className="w-10 h-10 rounded-lg object-contain" />
             <span className="text-mint font-semibold text-lg">PHARMACIST PORTAL</span>
           </div>
           
@@ -423,9 +421,7 @@ function LoginPage() {
       <div className="flex-1 bg-bg flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <div className="w-10 h-10 bg-mint rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">M</span>
-            </div>
+            <img src="/favicon.png" alt="MedSync" className="w-10 h-10 rounded-lg object-contain" />
             <span className="text-mint font-semibold text-lg">PHARMACIST PORTAL</span>
           </div>
 
