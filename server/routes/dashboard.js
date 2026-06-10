@@ -213,9 +213,15 @@ router.delete('/patients/:patientId/unlink', async (req, res, next) => {
     const { patientId } = req.params;
     const pharmacistId = req.pharmacist._id;
 
-    const result = await PatientLink.deleteOne({
+    const patient = await Patient.findById(patientId);
+    if (!patient) return res.status(404).json({ message: 'Patient not found' });
+
+    const familyMembers = await Patient.find({ userId: patient.userId }).select('_id');
+    const familyMemberIds = familyMembers.map(p => p._id);
+
+    const result = await PatientLink.deleteMany({
       pharmacistId,
-      patientId,
+      patientId: { $in: familyMemberIds },
     });
 
     if (result.deletedCount === 0) {
@@ -242,9 +248,15 @@ router.put('/patients/:patientId/contact', [
     const { patientEmail, patientPhone, patientAddress } = req.body;
     const pharmacistId = req.pharmacist._id;
 
+    const patient = await Patient.findById(patientId);
+    if (!patient) return res.status(404).json({ message: 'Patient not found' });
+
+    const familyMembers = await Patient.find({ userId: patient.userId }).select('_id');
+    const familyMemberIds = familyMembers.map(p => p._id);
+
     const patientLink = await PatientLink.findOne({
       pharmacistId,
-      patientId,
+      patientId: { $in: familyMemberIds },
     });
 
     if (!patientLink) {
@@ -283,15 +295,22 @@ router.post('/patients/bulk-email', [
     const pharmacistId = req.pharmacist._id;
     const pharmacyName = req.pharmacist.pharmacyName || req.pharmacist.name;
 
-    // Find links for these patients
+    // We need to find the PatientLinks for ANY family member of the selected patients.
+    const selectedPatients = await Patient.find({ _id: { $in: patientIds } }).select('userId');
+    const userIds = [...new Set(selectedPatients.map(p => p.userId.toString()))];
+
+    const familyMembers = await Patient.find({ userId: { $in: userIds } }).select('_id');
+    const familyMemberIds = familyMembers.map(p => p._id);
+
+    // Find links for these patients' families
     const patientLinks = await PatientLink.find({
       pharmacistId,
-      patientId: { $in: patientIds },
+      patientId: { $in: familyMemberIds },
     });
 
-    const emails = patientLinks
+    const emails = [...new Set(patientLinks
       .map(link => link.patientEmail)
-      .filter(email => email); // Only valid emails
+      .filter(email => email))]; // Only valid unique emails
 
     if (emails.length === 0) {
       return res.status(400).json({ message: 'No valid email addresses found for selected patients' });

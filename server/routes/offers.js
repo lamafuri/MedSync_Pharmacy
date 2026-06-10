@@ -39,20 +39,24 @@ router.post('/', [
     // Filter out whatsapp channel (not implemented yet)
     const filteredChannels = channels.filter(c => c !== 'whatsapp');
 
-    // Verify PatientLink exists
+    // Fetch patient details first to get userId
+    const patient = await Patient.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+
+    // Find all family members under the same User account
+    const familyMembers = await Patient.find({ userId: patient.userId }).select('_id');
+    const familyMemberIds = familyMembers.map(p => p._id);
+
+    // Verify PatientLink exists for any of these family members
     const patientLink = await PatientLink.findOne({
       pharmacistId,
-      patientId,
+      patientId: { $in: familyMemberIds },
     });
 
     if (!patientLink) {
       return res.status(404).json({ message: 'Patient not linked to this pharmacist' });
-    }
-
-    // Fetch patient details
-    const patient = await Patient.findById(patientId);
-    if (!patient) {
-      return res.status(404).json({ message: 'Patient not found' });
     }
 
     // Create offer with draft status
