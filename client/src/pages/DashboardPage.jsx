@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, AlertTriangle, Gift, Clock, ChevronDown, ChevronUp, Send } from 'lucide-react';
+import { ChevronDown, ChevronUp, Send } from 'lucide-react';
 import axios from '../lib/axios';
 import { useAuthStore } from '../store/authStore';
 import StockBadge from '../components/StockBadge';
@@ -60,34 +60,6 @@ function DashboardPage() {
 
   return (
     <div>
-      {/* Stats Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard
-          icon={Users}
-          label="Total Patients"
-          value={stats.totalPatients || 0}
-          color="blue"
-        />
-        <StatCard
-          icon={AlertTriangle}
-          label="Critical Stock"
-          value={stats.criticalCount || 0}
-          color="red"
-        />
-        <StatCard
-          icon={Gift}
-          label="Offers Sent Today"
-          value={stats.offersSentToday || 0}
-          color="mint"
-        />
-        <StatCard
-          icon={Clock}
-          label="Pending Actions"
-          value={stats.warningCount || 0}
-          color="amber"
-        />
-      </div>
-
       {/* Filter Chips */}
       <div className="flex flex-wrap gap-2 mb-6">
         <FilterChip
@@ -96,17 +68,17 @@ function DashboardPage() {
           onClick={() => setFilter('all')}
         />
         <FilterChip
-          label="🔴 Critical"
+          label="Critical"
           active={filter === 'critical'}
           onClick={() => setFilter('critical')}
         />
         <FilterChip
-          label="🟡 Warning"
+          label="Warning"
           active={filter === 'warning'}
           onClick={() => setFilter('warning')}
         />
         <FilterChip
-          label="🟢 Healthy"
+          label="Healthy"
           active={filter === 'healthy'}
           onClick={() => setFilter('healthy')}
         />
@@ -152,24 +124,6 @@ function DashboardPage() {
   );
 }
 
-function StatCard({ icon: Icon, label, value, color }) {
-  const colors = {
-    blue: 'bg-mint-light text-mint',
-    red: 'bg-red-light text-red',
-    mint: 'bg-mint-light text-mint',
-    amber: 'bg-amber-light text-amber',
-  };
-
-  return (
-    <div className="bg-card rounded-card border border-border p-6">
-      <div className={`w-12 h-12 ${colors[color]} rounded-xl flex items-center justify-center mb-4`}>
-        <Icon className="w-6 h-6" strokeWidth={1.5} />
-      </div>
-      <p className="text-2xl font-bold text-primary">{value}</p>
-      <p className="text-muted text-sm">{label}</p>
-    </div>
-  );
-}
 
 function FilterChip({ label, active, onClick }) {
   return (
@@ -199,9 +153,9 @@ function PatientCard({ patient, isExpanded, onToggle, onSendOffer }) {
             {patient.name?.charAt(0) || 'P'}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 mb-1">
+                    <div className="flex items-center gap-3 mb-1">
               <h3 className="font-semibold text-primary truncate">{patient.name}</h3>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${alertColors[patient.alertLevel]}`}>
+              <span className="text-sm text-muted">
                 {patient.alertLevel === 'red' ? 'Critical' : patient.alertLevel === 'amber' ? 'Warning' : 'Healthy'}
               </span>
             </div>
