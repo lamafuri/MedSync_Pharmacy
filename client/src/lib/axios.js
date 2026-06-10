@@ -28,7 +28,13 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
+    const requestUrl = error.config?.url || '';
+    const isAuthEndpoint = requestUrl.startsWith('/api/auth');
+
     if (error.response?.status === 401) {
+      if (isAuthEndpoint) {
+        return Promise.reject(error);
+      }
       localStorage.removeItem('pharmacist-auth');
       window.location.href = '/login';
     }
