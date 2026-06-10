@@ -10,6 +10,7 @@ import offerRoutes from './routes/offers.js';
 import notificationRoutes from './routes/notifications.js';
 import pharmacistLinkRoutes from './routes/pharmacistLinkRoutes.js';
 import orderRoutes from './routes/orders.js';
+import { verifyEmailTransporter } from './utils/sendEmail.js';
 import './cron/lowStockAlerts.js';
 
 dotenv.config();
@@ -19,6 +20,11 @@ const PORT = process.env.PORT || 5001;
 
 // Connect to MongoDB
 connectDB();
+
+// Verify email transporter on startup so misconfiguration is visible in logs
+verifyEmailTransporter()
+  .then(() => console.log('Email transporter: OK'))
+  .catch(err => console.error('Email transporter FAILED:', err.message));
 
 // Middleware
 app.use(cors({

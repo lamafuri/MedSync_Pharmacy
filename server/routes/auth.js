@@ -36,8 +36,7 @@ async function sendRegistrationOtp(pending) {
   try {
     await sendVerificationEmail(pending.email, pending.verifyOtp);
   } catch (error) {
-    // Log error without sensitive information
-    // console.error('Failed to send verification email:', error.message);
+    console.error('Failed to send verification email:', error.message);
     throw error;
   }
 }
@@ -104,9 +103,7 @@ router.post(
       try {
         await sendRegistrationOtp(pending);
       } catch (emailError) {
-        // If email sending fails, still save the pending registration
-        // but inform the user about the email issue
-        // console.error('Email sending failed but registration saved:', emailError.message);
+        console.error('Registration email failed:', emailError.message);
         return res.status(503).json({
           message: 'Registration saved but email service unavailable. Please request OTP resend.',
           email: normalizedEmail,
@@ -279,7 +276,7 @@ router.post(
       try {
         await sendRegistrationOtp(pending);
       } catch (emailError) {
-        // console.error('Email sending failed:', emailError.message);
+        console.error('OTP resend email failed:', emailError.message);
         return res.status(503).json({
           message: 'Email service unavailable. Please try again later.',
         });
@@ -320,7 +317,7 @@ router.post(
       try {
         await sendResetOTPEmail(normalizedEmail, otp);
       } catch (emailError) {
-        // console.error('Email sending failed:', emailError.message);
+        console.error('Password reset email failed:', emailError.message);
         return res.status(503).json({
           message: 'Email service unavailable. Please try again later.',
         });

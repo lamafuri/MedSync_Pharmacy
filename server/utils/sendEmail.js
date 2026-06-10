@@ -8,17 +8,29 @@ function getTransporter() {
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
   if (!host || !user || !pass) return null;
+
+  const port = Number(process.env.SMTP_PORT || 587);
   transporter = nodemailer.createTransport({
     host,
-    port: Number(process.env.SMTP_PORT || 587),
-    secure: process.env.SMTP_SECURE === 'true',
+    port,
+    secure: port === 465,
+    requireTLS: port !== 465,
     auth: { user, pass },
+    tls: {
+      rejectUnauthorized: false,
+    },
   });
   return transporter;
 }
 
 export function isEmailConfigured() {
   return Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+}
+
+export async function verifyEmailTransporter() {
+  const tx = getTransporter();
+  if (!tx) throw new Error('SMTP env vars (SMTP_HOST, SMTP_USER, SMTP_PASS) are not set');
+  await tx.verify();
 }
 
 async function sendMail(mailOptions) {
