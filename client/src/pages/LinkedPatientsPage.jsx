@@ -6,7 +6,6 @@ import QrScanner from '../components/QrScanner';
 function LinkedPatientsPage() {
   const [linkMethod, setLinkMethod] = useState('otp');
   const [otp, setOtp] = useState('');
-  const [qrToken, setQrToken] = useState('');
   const [linking, setLinking] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
 
@@ -24,25 +23,6 @@ function LinkedPatientsPage() {
       setOtp('');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to link via OTP');
-    } finally {
-      setLinking(false);
-    }
-  };
-
-  const handleLinkViaQr = async (e) => {
-    e.preventDefault();
-    if (!qrToken.trim()) {
-      toast.error('QR token is required');
-      return;
-    }
-
-    try {
-      setLinking(true);
-      await linkViaQr(qrToken);
-      toast.success('Successfully linked to patient');
-      setQrToken('');
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to link via QR');
     } finally {
       setLinking(false);
     }
@@ -124,28 +104,6 @@ function LinkedPatientsPage() {
                 Scan QR Code with Camera
               </button>
 
-              <div className="flex items-center gap-3 text-muted text-sm">
-                <div className="flex-1 h-px bg-border" />
-                <span>or enter token manually</span>
-                <div className="flex-1 h-px bg-border" />
-              </div>
-
-              <form onSubmit={handleLinkViaQr} className="flex gap-4">
-                <input
-                  type="text"
-                  value={qrToken}
-                  onChange={(e) => setQrToken(e.target.value)}
-                  placeholder="Paste QR token"
-                  className="flex-1 px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
-                />
-                <button
-                  type="submit"
-                  disabled={linking || !qrToken.trim()}
-                  className="px-6 py-3 bg-mint text-white rounded-btn font-semibold hover:bg-mint/90 disabled:opacity-50"
-                >
-                  {linking ? 'Linking...' : 'Link'}
-                </button>
-              </form>
             </div>
           )}
         </div>
