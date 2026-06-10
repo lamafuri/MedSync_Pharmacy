@@ -29,10 +29,12 @@ function App() {
         <Route path="patients" element={<PatientsPage />} />
         <Route path="offers" element={<OffersPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
-        <Route path="linked-patients" element={<LinkedPatientsPage />} />
+        <Route path="link-patients" element={<LinkedPatientsPage />} />
         <Route path="orders" element={<OrdersPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

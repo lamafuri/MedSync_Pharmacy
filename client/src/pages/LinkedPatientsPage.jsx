@@ -1,32 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { linkViaOtp, linkViaQr, getLinkedPatients, unlinkPatient } from '../api/pharmacistLinkApi';
+import { linkViaOtp, linkViaQr } from '../api/pharmacistLinkApi';
 import QrScanner from '../components/QrScanner';
 
 function LinkedPatientsPage() {
-  const [linkedPatients, setLinkedPatients] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [linkMethod, setLinkMethod] = useState('otp');
   const [otp, setOtp] = useState('');
   const [qrToken, setQrToken] = useState('');
   const [linking, setLinking] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
-
-  const fetchLinkedPatients = async () => {
-    try {
-      setLoading(true);
-      const data = await getLinkedPatients();
-      setLinkedPatients(data);
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to fetch linked patients');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchLinkedPatients();
-  }, []);
 
   const handleLinkViaOtp = async (e) => {
     e.preventDefault();
@@ -40,7 +22,6 @@ function LinkedPatientsPage() {
       await linkViaOtp(otp);
       toast.success('Successfully linked to patient');
       setOtp('');
-      fetchLinkedPatients();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to link via OTP');
     } finally {
@@ -60,7 +41,6 @@ function LinkedPatientsPage() {
       await linkViaQr(qrToken);
       toast.success('Successfully linked to patient');
       setQrToken('');
-      fetchLinkedPatients();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to link via QR');
     } finally {
@@ -75,7 +55,6 @@ function LinkedPatientsPage() {
       setLinking(true);
       await linkViaQr(scannedToken);
       toast.success('Successfully linked to patient');
-      fetchLinkedPatients();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to link via QR');
     } finally {
@@ -83,25 +62,11 @@ function LinkedPatientsPage() {
     }
   };
 
-  const handleUnlink = async (linkId) => {
-    if (!window.confirm('Are you sure you want to unlink this patient?')) {
-      return;
-    }
-
-    try {
-      await unlinkPatient(linkId);
-      toast.success('Successfully unlinked patient');
-      fetchLinkedPatients();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to unlink patient');
-    }
-  };
-
   return (
     <>
     <div className="min-h-screen bg-bg p-6">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-primary mb-6">Linked Patients</h1>
+        <h1 className="text-3xl font-bold text-primary mb-6">Link Patients</h1>
 
         {/* Link New Patient Section */}
         <div className="bg-card rounded-card p-6 mb-6">
@@ -185,84 +150,6 @@ function LinkedPatientsPage() {
           )}
         </div>
 
-        {/* Linked Patients List */}
-        <div className="bg-card rounded-card p-6">
-          <h2 className="text-xl font-semibold text-primary mb-4">Your Linked Patients</h2>
-          
-          {loading ? (
-            <div className="flex justify-center py-8">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-border border-t-mint" />
-            </div>
-          ) : linkedPatients.length === 0 ? (
-            <p className="text-muted text-center py-8">No linked patients yet</p>
-          ) : (
-            <div className="space-y-4">
-              {linkedPatients.map((link) => (
-                <div key={link._id} className="border border-border rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <p className="font-semibold text-primary">
-                        User ID: {link.userId}
-                      </p>
-                      <p className="text-sm text-muted">
-                        Linked on: {new Date(link.linkedAt).toLocaleDateString()}
-                      </p>
-                      <p className="text-sm text-muted">
-                        Method: {link.linkMethod === 'otp' ? 'OTP' : 'QR Token'}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleUnlink(link._id)}
-                      className="px-3 py-1 bg-red-500 text-white rounded-btn text-sm hover:bg-red-600"
-                    >
-                      Unlink
-                    </button>
-                  </div>
-
-                  {link.patients && link.patients.length > 0 && (
-                    <div className="mt-4">
-                      <p className="font-medium text-primary mb-2">Family Members:</p>
-                      <div className="space-y-2">
-                        {link.patients.map((patient) => (
-                          <div key={patient._id} className="bg-faint rounded-lg p-3">
-                            <div className="flex justify-between items-start mb-2">
-                              <div>
-                                <p className="font-semibold text-navy">{patient.name}</p>
-                                <p className="text-sm text-muted">Relation: {patient.relation}</p>
-                                {patient.allergies && (
-                                  <p className="text-sm text-red-500">Allergies: {patient.allergies}</p>
-                                )}
-                              </div>
-                            </div>
-
-                            {patient.medicines && patient.medicines.length > 0 && (
-                              <div className="mt-2">
-                                <p className="text-sm font-medium text-navy mb-1">Medicines:</p>
-                                <div className="space-y-1">
-                                  {patient.medicines.map((medicine) => (
-                                    <div key={medicine._id} className="text-sm text-muted bg-white rounded p-2">
-                                      <p className="font-medium">{medicine.name}</p>
-                                      <p className="text-xs">
-                                        Stock: {medicine.currentStock} / {medicine.totalStock}
-                                      </p>
-                                      <p className="text-xs">
-                                        Dosage: {medicine.dosage}
-                                      </p>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
     </div>
 

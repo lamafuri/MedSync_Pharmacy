@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Link2, Unlink, Send, Mail, Phone, MapPin, Edit2, X, ChevronDown, ChevronUp } from 'lucide-react';
 import axios from '../lib/axios';
 import { useAuthStore } from '../store/authStore';
@@ -8,6 +9,7 @@ import SkeletonCard from '../components/SkeletonCard';
 import toast from 'react-hot-toast';
 
 function PatientsPage() {
+  const navigate = useNavigate();
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -15,12 +17,10 @@ function PatientsPage() {
   const [medicineFilter, setMedicineFilter] = useState('');
   const [selectedPatients, setSelectedPatients] = useState([]);
   
-  const [showLinkModal, setShowLinkModal] = useState(false);
   const [showEditContactModal, setShowEditContactModal] = useState(false);
   const [showBulkEmailModal, setShowBulkEmailModal] = useState(false);
   
   const [selectedPatient, setSelectedPatient] = useState(null);
-  const [linkForm, setLinkForm] = useState({ qrToken: '', patientEmail: '', patientPhone: '', patientAddress: '' });
   const [contactForm, setContactForm] = useState({ patientEmail: '', patientPhone: '', patientAddress: '' });
   const [bulkEmailForm, setBulkEmailForm] = useState({ subject: '', message: '' });
   
@@ -51,18 +51,6 @@ function PatientsPage() {
     }
   };
 
-  const handleLinkPatient = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post('/api/dashboard/patients/link', linkForm);
-      toast.success('Patient linked successfully');
-      setShowLinkModal(false);
-      setLinkForm({ qrToken: '', patientEmail: '', patientPhone: '', patientAddress: '' });
-      fetchPatients();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to link patient');
-    }
-  };
 
   const handleUnlinkPatient = async (patientId) => {
     if (!confirm('Are you sure you want to unlink this patient?')) return;
@@ -188,7 +176,7 @@ function PatientsPage() {
           />
         </div>
         <button
-          onClick={() => setShowLinkModal(true)}
+          onClick={() => navigate('/link-patients')}
           className="flex items-center justify-center gap-2 px-6 py-3 bg-mint text-white rounded-btn font-semibold hover:bg-mint/90 transition-colors whitespace-nowrap"
         >
           <Link2 className="w-5 h-5" />
@@ -331,67 +319,6 @@ function PatientsPage() {
         </form>
       </Modal>
 
-      {/* Link Patient Modal */}
-      <Modal isOpen={showLinkModal} onClose={() => setShowLinkModal(false)} title="Link Patient">
-        <form onSubmit={handleLinkPatient} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-primary mb-2">QR Token or OTP *</label>
-            <input
-              type="text"
-              value={linkForm.qrToken}
-              onChange={(e) => setLinkForm({ ...linkForm, qrToken: e.target.value })}
-              placeholder="Enter patient's QR token or 8-digit OTP"
-              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-primary mb-2">Email (optional)</label>
-            <input
-              type="email"
-              value={linkForm.patientEmail}
-              onChange={(e) => setLinkForm({ ...linkForm, patientEmail: e.target.value })}
-              placeholder="Patient's email"
-              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-primary mb-2">Phone (optional)</label>
-            <input
-              type="tel"
-              value={linkForm.patientPhone}
-              onChange={(e) => setLinkForm({ ...linkForm, patientPhone: e.target.value })}
-              placeholder="Patient's phone"
-              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-primary mb-2">Address (optional)</label>
-            <input
-              type="text"
-              value={linkForm.patientAddress}
-              onChange={(e) => setLinkForm({ ...linkForm, patientAddress: e.target.value })}
-              placeholder="Patient's address"
-              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-mint"
-            />
-          </div>
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={() => setShowLinkModal(false)}
-              className="flex-1 py-3 bg-faint text-muted rounded-btn font-semibold hover:bg-faint/80"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 py-3 bg-mint text-white rounded-btn font-semibold hover:bg-mint/90"
-            >
-              Link Patient
-            </button>
-          </div>
-        </form>
-      </Modal>
 
       {/* Edit Contact Modal */}
       <Modal isOpen={showEditContactModal} onClose={() => setShowEditContactModal(false)} title="Edit Contact Info">
