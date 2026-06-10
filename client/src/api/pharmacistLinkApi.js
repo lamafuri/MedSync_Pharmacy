@@ -1,12 +1,12 @@
 import axios from '../lib/axios';
 
 export const linkViaOtp = async (otp) => {
-  const response = await axios.post('/api/pharmacist-links/link/otp', { otp });
+  const response = await axios.post('/api/dashboard/patients/link', { qrToken: otp });
   return response.data;
 };
 
 export const linkViaQr = async (qrToken) => {
-  const response = await axios.post('/api/pharmacist-links/link/qr', { qrToken });
+  const response = await axios.post('/api/dashboard/patients/link', { qrToken });
   return response.data;
 };
 

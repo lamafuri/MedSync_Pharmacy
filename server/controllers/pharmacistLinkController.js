@@ -1,7 +1,31 @@
 import PharmacistLink from '../models/PharmacistLink.js';
 import PharmacistInvitation from '../models/PharmacistInvitation.js';
-import Patient from '../models/Patient.js';
+import PatientLink from '../models/PatientLink.js';
+import Patient from '../models/shared/Patient.js';
 import Medicine from '../models/Medicine.js';
+
+const createPatientLinkRecord = async ({ pharmacistId, userId, qrToken }) => {
+  const patients = await Patient.find({ userId }).lean();
+  if (!patients.length) return null;
+
+  const existingDashboardLink = await PatientLink.findOne({
+    pharmacistId,
+    patientId: { $in: patients.map((patient) => patient._id) },
+  });
+
+  if (existingDashboardLink) {
+    return existingDashboardLink;
+  }
+
+  return PatientLink.create({
+    pharmacistId,
+    patientId: patients[0]._id,
+    qrToken,
+    patientEmail: null,
+    patientPhone: null,
+    patientAddress: null,
+  });
+};
 
 // Link patient via OTP
 export const linkViaOtp = async (req, res, next) => {
@@ -36,11 +60,18 @@ export const linkViaOtp = async (req, res, next) => {
     invitation.otpUsed = true;
     await invitation.save();
 
-    // Create new link
+    // Create new pharmacist link
     const link = await PharmacistLink.create({
       pharmacistId,
       userId,
       linkMethod: 'otp',
+    });
+
+    // Create matching dashboard patient link so the Patients section can display this user
+    await createPatientLinkRecord({
+      pharmacistId,
+      userId,
+      qrToken: invitation.qrToken,
     });
 
     res.status(201).json({
@@ -90,11 +121,18 @@ export const linkViaQr = async (req, res, next) => {
     invitation.qrUsed = true;
     await invitation.save();
 
-    // Create new link
+    // Create new pharmacist link
     const link = await PharmacistLink.create({
       pharmacistId,
       userId,
       linkMethod: 'qr',
+    });
+
+    // Create matching dashboard patient link so the Patients section can display this user
+    await createPatientLinkRecord({
+      pharmacistId,
+      userId,
+      qrToken: invitation.qrToken,
     });
 
     res.status(201).json({
