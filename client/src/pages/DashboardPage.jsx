@@ -161,7 +161,7 @@ function DashboardPage() {
                 className="w-full flex items-center justify-between p-4 hover:bg-faint transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-navy flex items-center justify-center text-white font-semibold">
+                  <div className="w-10 h-10 bg-navy flex items-center justify-center text-white font-semibold rounded-full">
                     {group.mainAccountName?.charAt(0) || 'P'}
                   </div>
                   <div className="text-left">
@@ -250,8 +250,6 @@ function PatientCard({ patient, isExpanded, onToggle, onSendOffer }) {
                 {patient.alertLevel === 'red' ? 'Critical' : patient.alertLevel === 'amber' ? 'Warning' : 'Healthy'}
               </span>
             </div>
-            <p className="text-sm text-muted truncate">{patient.patientAddress || 'No address'}</p>
-            <p className="text-sm text-muted">{patient.patientPhone || 'No phone'}</p>
           </div>
           <button
             onClick={onToggle}
