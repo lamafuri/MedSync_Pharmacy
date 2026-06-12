@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, Send } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ChevronDown, ChevronUp, Send, Link2, MapPin } from 'lucide-react';
 import axios from '../lib/axios';
 import { useAuthStore } from '../store/authStore';
 import StockBadge from '../components/StockBadge';
@@ -8,9 +9,12 @@ import SkeletonCard from '../components/SkeletonCard';
 import toast from 'react-hot-toast';
 
 function DashboardPage() {
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [locationFilter, setLocationFilter] = useState('');
+  const [medicineFilter, setMedicineFilter] = useState('');
   const [expandedPatient, setExpandedPatient] = useState(null);
   const [showOfferComposer, setShowOfferComposer] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
@@ -32,11 +36,17 @@ function DashboardPage() {
     }
   };
 
+  const allLocations = Array.from(new Set(data?.patients?.map(p => p.patientAddress).filter(Boolean)));
+  const allMedicines = Array.from(new Set(data?.patients?.flatMap(p => p.medicines?.map(m => m.name)).filter(Boolean)));
+
   const filteredPatients = data?.patients?.filter(p => {
-    if (filter === 'all') return true;
-    if (filter === 'critical') return p.alertLevel === 'red';
-    if (filter === 'warning') return p.alertLevel === 'amber';
-    if (filter === 'healthy') return p.alertLevel === 'green';
+    if (filter === 'critical' && p.alertLevel !== 'red') return false;
+    if (filter === 'warning' && p.alertLevel !== 'amber') return false;
+    if (filter === 'healthy' && p.alertLevel !== 'green') return false;
+
+    if (locationFilter && !p.patientAddress?.toLowerCase().includes(locationFilter.toLowerCase())) return false;
+    if (medicineFilter && !p.medicines?.some(m => m.name.toLowerCase().includes(medicineFilter.toLowerCase()))) return false;
+
     return true;
   }) || [];
 
@@ -60,28 +70,68 @@ function DashboardPage() {
 
   return (
     <div>
-      {/* Filter Chips */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        <FilterChip
-          label={`All (${stats.totalPatients || 0})`}
-          active={filter === 'all'}
-          onClick={() => setFilter('all')}
-        />
-        <FilterChip
-          label="Critical"
-          active={filter === 'critical'}
-          onClick={() => setFilter('critical')}
-        />
-        <FilterChip
-          label="Warning"
-          active={filter === 'warning'}
-          onClick={() => setFilter('warning')}
-        />
-        <FilterChip
-          label="Healthy"
-          active={filter === 'healthy'}
-          onClick={() => setFilter('healthy')}
-        />
+      {/* Header Filters and Actions */}
+      <div className="flex flex-col xl:flex-row gap-4 mb-6 xl:items-center justify-between">
+        <div className="flex flex-wrap gap-2">
+          <FilterChip
+            label={`All (${stats.totalPatients || 0})`}
+            active={filter === 'all'}
+            onClick={() => setFilter('all')}
+          />
+          <FilterChip
+            label="Critical"
+            active={filter === 'critical'}
+            onClick={() => setFilter('critical')}
+          />
+          <FilterChip
+            label="Warning"
+            active={filter === 'warning'}
+            onClick={() => setFilter('warning')}
+          />
+          <FilterChip
+            label="Healthy"
+            active={filter === 'healthy'}
+            onClick={() => setFilter('healthy')}
+          />
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+            <input
+              type="text"
+              list="locations"
+              placeholder="Filter Location..."
+              value={locationFilter}
+              onChange={(e) => setLocationFilter(e.target.value)}
+              className="w-full sm:w-48 pl-10 pr-4 py-2 text-sm bg-card border border-border rounded-btn focus:outline-none focus:border-mint"
+            />
+            <datalist id="locations">
+              {allLocations.map(loc => <option key={loc} value={loc} />)}
+            </datalist>
+          </div>
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted flex items-center justify-center font-bold text-[10px] border border-muted rounded-full">Rx</div>
+            <input
+              type="text"
+              list="medicines"
+              placeholder="Filter Medicine..."
+              value={medicineFilter}
+              onChange={(e) => setMedicineFilter(e.target.value)}
+              className="w-full sm:w-48 pl-10 pr-4 py-2 text-sm bg-card border border-border rounded-btn focus:outline-none focus:border-mint"
+            />
+            <datalist id="medicines">
+              {allMedicines.map(med => <option key={med} value={med} />)}
+            </datalist>
+          </div>
+          <button
+            onClick={() => navigate('/link-patients')}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-mint text-white rounded-btn text-sm font-semibold hover:bg-mint/90 transition-colors whitespace-nowrap"
+          >
+            <Link2 className="w-4 h-4" />
+            Link Patient
+          </button>
+        </div>
       </div>
 
       {/* Patient Alert List */}

@@ -4,7 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
 import AppShell from './components/AppShell';
 import DashboardPage from './pages/DashboardPage';
-import PatientsPage from './pages/PatientsPage';
+
 import OffersPage from './pages/OffersPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import ProfilePage from './pages/ProfilePage';
@@ -26,7 +26,7 @@ function App() {
         }
       >
         <Route index element={<DashboardPage />} />
-        <Route path="patients" element={<PatientsPage />} />
+
         <Route path="offers" element={<OffersPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="link-patients" element={<LinkedPatientsPage />} />
