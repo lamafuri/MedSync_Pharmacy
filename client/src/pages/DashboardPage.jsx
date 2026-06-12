@@ -16,6 +16,7 @@ function DashboardPage() {
   const [locationFilter, setLocationFilter] = useState('');
   const [medicineFilter, setMedicineFilter] = useState('');
   const [expandedPatient, setExpandedPatient] = useState(null);
+  const [expandedGroups, setExpandedGroups] = useState({});
   const [showOfferComposer, setShowOfferComposer] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [selectedMedicine, setSelectedMedicine] = useState(null);
@@ -141,14 +142,54 @@ function DashboardPage() {
             <p className="text-muted">No patients found. Link your first patient to get started.</p>
           </div>
         ) : (
-          filteredPatients.map((patient) => (
-            <PatientCard
-              key={patient._id}
-              patient={patient}
-              isExpanded={expandedPatient === patient._id}
-              onToggle={() => setExpandedPatient(expandedPatient === patient._id ? null : patient._id)}
-              onSendOffer={(medicine) => handleSendOffer(patient, medicine)}
-            />
+          Object.entries(
+            filteredPatients.reduce((acc, patient) => {
+              const key = patient.userId || patient._id;
+              if (!acc[key]) {
+                acc[key] = {
+                  mainAccountName: patient.mainAccountName || patient.name,
+                  members: []
+                };
+              }
+              acc[key].members.push(patient);
+              return acc;
+            }, {})
+          ).map(([userId, group]) => (
+            <div key={userId} className="bg-card rounded-card border border-border overflow-hidden">
+              <button
+                onClick={() => setExpandedGroups(prev => ({ ...prev, [userId]: !prev[userId] }))}
+                className="w-full flex items-center justify-between p-4 hover:bg-faint transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-navy flex items-center justify-center text-white font-semibold">
+                    {group.mainAccountName?.charAt(0) || 'P'}
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-semibold text-primary text-lg">{group.mainAccountName}'s Account</h3>
+                    <p className="text-sm text-muted">{group.members.length} Profile{group.members.length !== 1 ? 's' : ''}</p>
+                  </div>
+                </div>
+                <div className="text-muted">
+                  {expandedGroups[userId] ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                </div>
+              </button>
+              
+              {expandedGroups[userId] && (
+                <div className="p-4 border-t border-border bg-faint/30">
+                  <div className="flex flex-col gap-4">
+                    {group.members.map((patient) => (
+                      <PatientCard
+                        key={patient._id}
+                        patient={patient}
+                        isExpanded={expandedPatient === patient._id}
+                        onToggle={() => setExpandedPatient(expandedPatient === patient._id ? null : patient._id)}
+                        onSendOffer={(medicine) => handleSendOffer(patient, medicine)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           ))
         )}
       </div>
