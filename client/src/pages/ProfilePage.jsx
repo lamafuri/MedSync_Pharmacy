@@ -25,6 +25,18 @@ function ProfilePage() {
   });
 
   useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await axios.get('/api/auth/me');
+        setPharmacist(response.data);
+      } catch (error) {
+        console.error('Failed to fetch profile', error);
+      }
+    };
+    fetchProfile();
+  }, [setPharmacist]);
+
+  useEffect(() => {
     if (pharmacist) {
       setProfileForm({
         name: pharmacist.name || '',
