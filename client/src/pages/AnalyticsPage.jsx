@@ -36,7 +36,7 @@ function AnalyticsPage() {
           <div className="w-20 h-20 bg-amber-light rounded-full flex items-center justify-center mx-auto mb-4">
             <Crown className="w-10 h-10 text-amber" />
           </div>
-          <h3 className="text-2xl font-bold text-primary mb-2">Analytics — Premium Feature</h3>
+          <h3 className="text-2xl font-bold text-primary mb-2">Analytics - Premium Feature</h3>
           <p className="text-muted mb-6">Unlock detailed insights about your offers, patient engagement, and pharmacy performance.</p>
           <button
             onClick={() => window.location.href = '/profile'}
@@ -177,10 +177,9 @@ function AnalyticsPage() {
                 </Pie>
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#0D1B2A',
+                    backgroundColor: '#b0cfcc',
                     border: 'none',
                     borderRadius: '10px',
-                    color: '#fff',
                   }}
                 />
                 <Legend />

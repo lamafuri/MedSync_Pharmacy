@@ -43,7 +43,7 @@ function DashboardPage() {
   const filteredPatients = data?.patients?.filter(p => {
     if (filter === 'critical' && p.alertLevel !== 'red') return false;
     if (filter === 'warning' && p.alertLevel !== 'amber') return false;
-    if (filter === 'healthy' && p.alertLevel !== 'green') return false;
+    if (filter === 'In-Stock' && p.alertLevel !== 'green') return false;
 
     if (locationFilter && !p.patientAddress?.toLowerCase().includes(locationFilter.toLowerCase())) return false;
     if (medicineFilter && !p.medicines?.some(m => m.name.toLowerCase().includes(medicineFilter.toLowerCase()))) return false;
@@ -90,9 +90,9 @@ function DashboardPage() {
             onClick={() => setFilter('warning')}
           />
           <FilterChip
-            label="Healthy"
-            active={filter === 'healthy'}
-            onClick={() => setFilter('healthy')}
+            label="In-Stock"
+            active={filter === 'In-Stock'}
+            onClick={() => setFilter('In-Stock')}
           />
         </div>
 
@@ -247,7 +247,7 @@ function PatientCard({ patient, isExpanded, onToggle, onSendOffer }) {
                     <div className="flex items-center gap-3 mb-1">
               <h3 className="font-semibold text-primary truncate">{patient.name}</h3>
               <span className="text-sm text-muted">
-                {patient.alertLevel === 'red' ? 'Critical' : patient.alertLevel === 'amber' ? 'Warning' : 'Healthy'}
+                {patient.alertLevel === 'red' ? 'Critical' : patient.alertLevel === 'amber' ? 'Warning' : 'In-Stock'}
               </span>
             </div>
           </div>
