@@ -254,7 +254,12 @@ function OfferComposer({ isOpen, onClose, patient, medicine, onSuccess }) {
   const [offerType, setOfferType] = useState('discount');
   const [discount, setDiscount] = useState(10);
   const [message, setMessage] = useState('');
-  const [channels, setChannels] = useState(['email', 'in_app']);
+  const [selectedMedicine, setSelectedMedicine] = useState(medicine?.name || '');
+  const [channels, setChannels] = useState(['in_app']);
+
+  useEffect(() => {
+    setSelectedMedicine(medicine?.name || '');
+  }, [medicine]);
   const [expiresAt, setExpiresAt] = useState('');
   const [loading, setLoading] = useState(false);
   const { pharmacist } = useAuthStore();
@@ -265,10 +270,10 @@ function OfferComposer({ isOpen, onClose, patient, medicine, onSuccess }) {
       setLoading(true);
       await axios.post('/api/offers', {
         patientId: patient._id,
-        medicineName: medicine?.name || 'Medicine',
+        medicineName: selectedMedicine || 'Medicine',
         offerType,
         discountPercent: offerType === 'discount' ? discount : 0,
-        title: `${offerType === 'discount' ? `${discount}% Off` : offerType} - ${medicine?.name || 'Special Offer'}`,
+        title: `${offerType === 'discount' ? `${discount}% Off` : offerType} - ${selectedMedicine || 'Special Offer'}`,
         fullMessage: message,
         shortMessage: message.substring(0, 100),
         channels,
@@ -291,7 +296,7 @@ function OfferComposer({ isOpen, onClose, patient, medicine, onSuccess }) {
     try {
       setLoading(true);
       const response = await axios.post('/api/offers/generate-template', {
-        medicineName: medicine?.name || 'Medicine',
+        medicineName: selectedMedicine || 'Medicine',
         offerType,
         discountPercent: discount,
       });
@@ -312,9 +317,19 @@ function OfferComposer({ isOpen, onClose, patient, medicine, onSuccess }) {
           <div className="w-12 h-12 bg-navy rounded-full flex items-center justify-center text-white font-semibold">
             {patient.name?.charAt(0) || 'P'}
           </div>
-          <div>
-            <p className="font-semibold text-primary">{patient.name}</p>
-            <p className="text-sm text-muted">{medicine?.name || 'Select a medicine'}</p>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-primary mb-1 truncate">{patient.name}</p>
+            <select
+              value={selectedMedicine}
+              onChange={(e) => setSelectedMedicine(e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-mint"
+              required
+            >
+              <option value="" disabled>Select a medicine</option>
+              {patient?.medicines?.map((med) => (
+                <option key={med._id} value={med.name}>{med.name}</option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -378,7 +393,7 @@ function OfferComposer({ isOpen, onClose, patient, medicine, onSuccess }) {
         <div>
           <label className="block text-sm font-medium text-primary mb-2">Channels</label>
           <div className="flex gap-4">
-            {['email', 'sms', 'in_app'].map((channel) => (
+            {['in_app', 'email'].map((channel) => (
               <label key={channel} className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
