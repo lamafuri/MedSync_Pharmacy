@@ -34,6 +34,10 @@
     @apply bg-bg font-body text-primary;
     -webkit-font-smoothing: antialiased;
   }
+  
+  button {
+    border-radius: 10px !important;
+  }
 }
 
 @layer utilities {
