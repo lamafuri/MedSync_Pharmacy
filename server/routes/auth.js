@@ -27,6 +27,9 @@ function pharmacistResponse(pharmacist) {
     name: pharmacist.name,
     email: pharmacist.email,
     pharmacyName: pharmacist.pharmacyName,
+    pharmacyAddress: pharmacist.pharmacyAddress,
+    phone: pharmacist.phone,
+    licenseNumber: pharmacist.licenseNumber,
     isPremium: pharmacist.isPremium,
     premiumExpiresAt: pharmacist.premiumExpiresAt,
   };
